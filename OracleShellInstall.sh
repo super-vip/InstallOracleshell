@@ -28,7 +28,7 @@ HOSTNAME=orcl
 PUBLICIP=
 ORACLE_SID=orcl
 ISCDB=FALSE
-PDBNAME=pdb01
+PDBNAME=
 ROOTPASSWD=oracle
 ORAPASSWD=oracle
 GRIDPASSWD=oracle
@@ -279,7 +279,7 @@ help() {
   c1 "-od,		--OCRP_BASEDISK			RAC OCRDISK DISKNAME" green
   c1 "-or,		--OCRREDUN			RAC OCR REDUNDANCY(EXTERNAL|NORMAL|HIGH)" green
   c1 "-dr,		--DATAREDUN			RAC DATA REDUNDANCY(EXTERNAL|NORMAL|HIGH)" green
-  c1 "-tsi,            --TIMESERVERIP                    RAC TIME SERVER IP" green
+  c1 "-tsi,           --TIMESERVERIP                  RAC TIME SERVER IP" green
   c1 "-txh            --TuXingHua                     Tu Xing Hua Install" green
   c1 "-udev           --UDEV                          Whether Auto Set UDEV" green
   c1 "-dns            --DNS                           RAC CONFIGURE DNS(Y|N)" green
@@ -1742,6 +1742,7 @@ EOF
 
     [ -f /etc/ntp.conf ] && mv /etc/ntp.conf /etc/ntp.conf.orig
   elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+    yum install -y chrony
     timedatectl set-timezone Asia/Shanghai
     if [ "$(systemctl status chronyd | grep -c running)" -gt 0 ]; then
       systemctl stop chronyd.service
@@ -2067,11 +2068,7 @@ EOF
   # Edit bash_profile
   ####################################################################################
   ##ROOT:
-  if [ "$OS_VER_PRI" -eq 6 ]; then
-    root_profile=/root/.profile
-  elif [ "$OS_VER_PRI" -eq 7 ] || [ "$OS_VER_PRI" -eq 8 ]; then
-    root_profile=/root/.bash_profile
-  fi
+  root_profile=/root/.bash_profile
   if [ "$(grep -E -c "#OracleBegin" ${root_profile})" -eq 0 ]; then
     cat <<EOF >>${root_profile}
 ################OracleBegin#########################
@@ -3836,7 +3833,7 @@ EOF
   ####################################################################################
   # Create PDB and Set pdb autostart with cdb
   ####################################################################################
-  if [ "${ISCDB}" = "TRUE" ]; then
+  if [ "${ISCDB}" = "TRUE" ] && [ -n "${PDBNAME}" ]; then
     if [ ! -f /home/oracle/pdbs_save_state.sql ]; then
       cat <<EOF >>/home/oracle/pdbs_save_state.sql
 --create pluggable database
@@ -4025,7 +4022,7 @@ EOF
   ####################################################################################
   # Configure PASSWORD_LIFE_TIME UNLIMITED
   ####################################################################################
-  if [ "${ISCDB}" = "TRUE" ]; then
+  if [ "${ISCDB}" = "TRUE" ] && [ -n "${PDBNAME}" ]; then
     cat <<EOF >/home/oracle/password_unlimt.sql
 ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER SYSTEM SET AUDIT_TRAIL=NONE SCOPE=SPFILE;
@@ -4119,7 +4116,9 @@ if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" 
   #DisableNetworkManager
   InstallRlwrap
   EditParaFiles
-  UnzipDBSoft
+  if [ "${ONLYCREATEDB}" = 'N' ]; then
+    UnzipDBSoft
+  fi
   ##If ONLY INSTALL ORACLE SOFTWARE
   if [ "${ONLYCONFIGOS}" = 'N' ]; then
     if [ "${ONLYINSTALLORACLE}" = 'Y' ]; then
@@ -4175,8 +4174,10 @@ elif [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; t
   InstallRlwrap
   EditParaFiles
   if [ "$nodeNum" -eq 1 ]; then
-    UnzipGridSoft
-    UnzipDBSoft
+    if [ "${ONLYCREATEDB}" = 'N' ]; then
+      UnzipGridSoft
+      UnzipDBSoft
+    fi
   fi
   ##Just nodenum 1 to excute
   if [ "$nodeNum" -eq 1 ]; then
@@ -4229,8 +4230,10 @@ elif [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTA
   #DisableNetworkManager
   InstallRlwrap
   EditParaFiles
-  UnzipGridSoft
-  UnzipDBSoft
+  if [ "${ONLYCREATEDB}" = 'N' ]; then
+    UnzipGridSoft
+    UnzipDBSoft
+  fi
   ##If ONLY INSTALL GRID SOFTWARE
   if [ "${ONLYCONFIGOS}" = 'N' ]; then
     if [ "${ONLYINSTALLGRID}" = "Y" ]; then
