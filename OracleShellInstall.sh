@@ -2133,8 +2133,10 @@ EOF
 EOF
     fi
   else
+    cp /home/oracle/.bash_profile /home/oracle/.bash_profile_bak
     ##if oraclesid oraclehome oraclebase is not the same of bash_profile , will update
     oracleSid=$(grep "ORACLE_SID=" /home/oracle/.bash_profile | awk '{print $2}')
+    oracleSid=${oracleSid#*=}
     oracleHostname=$(grep "ORACLE_HOSTNAME=" /home/oracle/.bash_profile | awk '{print $2}')
     oracleHostname=${oracleHostname#*=}
     oracleBase=$(grep "ORACLE_BASE=" /home/oracle/.bash_profile | awk '{print $2}')
