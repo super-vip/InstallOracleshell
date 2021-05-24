@@ -2134,6 +2134,7 @@ EOF
     fi
   else
     cp /home/oracle/.bash_profile /home/oracle/.bash_profile_bak
+    chown -R oracle:oinstall /home/oracle/.bash_profile_bak
     ##if oraclesid oraclehome oraclebase is not the same of bash_profile , will update
     oracleSid=$(grep "ORACLE_SID=" /home/oracle/.bash_profile | awk '{print $2}')
     oracleSid=${oracleSid#*=}
