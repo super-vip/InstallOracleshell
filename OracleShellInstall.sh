@@ -1512,12 +1512,13 @@ EOF
 #Configure Udev+Multipath ASMDISK
 ####################################################################################
 UDEV_ASMDISK() {
-  # Install multipath
-  yum install -y device-mapper*
-  mpathconf --enable --with_multipathd y
+  if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+    # Install multipath
+    yum install -y device-mapper*
+    mpathconf --enable --with_multipathd y
 
-  # Configure multipath
-  cat <<EOF >/etc/multipath.conf
+    # Configure multipath
+    cat <<EOF >/etc/multipath.conf
 defaults {
     user_friendly_names yes
 }
@@ -1528,6 +1529,8 @@ blacklist {
 
 multipaths {
 EOF
+  fi
+
   ocrdisk_sum=0
   for i in ${OCR_BASEDISK//,/ }; do
     ##judge whether disk is null,if disk is not null
@@ -1552,21 +1555,25 @@ EOF
         fi
       fi
     fi
-    num1=$((num1 + 1))
-    if [ "${OS_VERSION}" = "linux6" ]; then
-      cat <<EOF >>/etc/multipath.conf
+
+    ##Configure multipath.conf
+    if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+      num1=$((num1 + 1))
+      if [ "${OS_VERSION}" = "linux6" ]; then
+        cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(scsi_id -g -u "${i}")"
   alias ocr_${num1}
   }
 EOF
-    elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-      cat <<EOF >>/etc/multipath.conf
+      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+        cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(/usr/lib/udev/scsi_id -g -u "${i}")"
   alias ocr_${num1}
   }
 EOF
+      fi
     fi
   done
 
@@ -1601,64 +1608,76 @@ EOF
         fi
       fi
     fi
-    num2=$((num2 + 1))
-    if [ "${OS_VERSION}" = "linux6" ]; then
-      cat <<EOF >>/etc/multipath.conf
+    ##Configure multipath.conf
+    if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+      num2=$((num2 + 1))
+      if [ "${OS_VERSION}" = "linux6" ]; then
+        cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(scsi_id -g -u "${i}")"
   alias data_${num2}
   }
 EOF
-    elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-      cat <<EOF >>/etc/multipath.conf
+      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+        cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(/usr/lib/udev/scsi_id -g -u "${i}")"
   alias data_${num2}
   }
 EOF
+      fi
     fi
   done
 
-  echo "}" >>/etc/multipath.conf
+  ##Configure multipath.conf
+  if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+    echo "}" >>/etc/multipath.conf
 
-  multipath -F
-  multipath -v2
-  multipath -r
-  multipath -F
-  multipath -v2
+    multipath -F
+    multipath -v2
+    multipath -r
+    multipath -F
+    multipath -v2
+  fi
 
   logwrite "multipath info:" "multipath -ll"
 
   ####################################################################################
   # Configure udev
   ####################################################################################
-  if [ -f /dev/mapper/udev_info ]; then
-    rm -rf /dev/mapper/udev_info
+
+  if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+    if [ -f /dev/mapper/udev_info ]; then
+      rm -rf /dev/mapper/udev_info
+    fi
+    cd /dev/mapper || return
+    for i in ocr_* data_*; do
+      printf "%s %s\n" "$i" "$(udevadm info --query=all --name=/dev/mapper/"$i" | grep -i dm_uuid)" >>udev_info
+    done
+    cd ~ || return
+
+    ##remove  /etc/udev/rules.d/99-oracle-asmdevices.rules
+    if [ ! -f /etc/udev/rules.d/99-oracle-asmdevices.rules ]; then
+      rm -rf /etc/udev/rules.d/99-oracle-asmdevices.rules
+    fi
+
+    while read -r line; do
+      dm_uuid=$(echo "$line" | awk -F'=' '{print $2}')
+      disk_name=$(echo "$line" | awk '{print $1}')
+      echo "KERNEL==\"dm-*\",ENV{DM_UUID}==\"${dm_uuid}\",SYMLINK+=\"asm_${disk_name}\",OWNER=\"grid\",GROUP=\"asmadmin\",MODE=\"0660\"" >>/etc/udev/rules.d/99-oracle-asmdevices.rules
+    done </dev/mapper/udev_info
+
+    if [ "${OS_VERSION}" = "linux6" ]; then
+      start_udev
+    elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+      udevadm control --reload-rules
+      udevadm trigger --type=devices
+    fi
+
+    sleep 2
   fi
-  cd /dev/mapper || return
-  for i in ocr_* data_*; do
-    printf "%s %s\n" "$i" "$(udevadm info --query=all --name=/dev/mapper/"$i" | grep -i dm_uuid)" >>udev_info
-  done
-  cd ~ || return
 
-  if [ -f /etc/udev/rules.d/99-oracle-asmdevices.rules ]; then
-    rm -rf /etc/udev/rules.d/99-oracle-asmdevices.rules
-  fi
-  while read -r line; do
-    dm_uuid=$(echo "$line" | awk -F'=' '{print $2}')
-    disk_name=$(echo "$line" | awk '{print $1}')
-    echo "KERNEL==\"dm-*\",ENV{DM_UUID}==\"${dm_uuid}\",SYMLINK+=\"asm_${disk_name}\",OWNER=\"grid\",GROUP=\"asmadmin\",MODE=\"0660\"" >>/etc/udev/rules.d/99-oracle-asmdevices.rules
-  done </dev/mapper/udev_info
-
-  if [ "${OS_VERSION}" = "linux6" ]; then
-    start_udev
-  elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-    udevadm control --reload-rules
-    udevadm trigger --type=devices
-  fi
-
-  sleep 2
-
+  ##Configure ASMDISK for grip.rsp
   if [ -f "${SOFTWAREDIR}"/ocr_temp ]; then
     rm -rf "${SOFTWAREDIR}"/ocr_temp
   fi
@@ -2133,8 +2152,11 @@ EOF
 EOF
     fi
   else
+    cp /home/oracle/.bash_profile /home/oracle/.bash_profile_bak
+    chown -R oracle:oinstall /home/oracle/.bash_profile_bak
     ##if oraclesid oraclehome oraclebase is not the same of bash_profile , will update
     oracleSid=$(grep "ORACLE_SID=" /home/oracle/.bash_profile | awk '{print $2}')
+    oracleSid=${oracleSid#*=}
     oracleHostname=$(grep "ORACLE_HOSTNAME=" /home/oracle/.bash_profile | awk '{print $2}')
     oracleHostname=${oracleHostname#*=}
     oracleBase=$(grep "ORACLE_BASE=" /home/oracle/.bash_profile | awk '{print $2}')
@@ -4146,11 +4168,7 @@ elif [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; t
   SetHosts
   TimeDepSet
   CreateUsersAndDirs
-  if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
-    if [ ! -f /etc/udev/rules.d/99-oracle-asmdevices.rules ]; then
-      UDEV_ASMDISK
-    fi
-  fi
+  UDEV_ASMDISK
   if [ "${DNSSERVER}" = "y" ] || [ "${DNSSERVER}" = "Y" ]; then
     DNSServerConf
   fi
@@ -4217,11 +4235,7 @@ elif [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTA
   SetHostName
   SetHosts
   CreateUsersAndDirs
-  if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
-    if [ ! -f /etc/udev/rules.d/99-oracle-asmdevices.rules ]; then
-      UDEV_ASMDISK
-    fi
-  fi
+  UDEV_ASMDISK
   TimeDepSet
   Disableavahi
   DisableFirewall
