@@ -1676,7 +1676,16 @@ EOF
       udevadm trigger --type=devices
     fi
 
-    sleep 2
+    ##Judge UDEV whether load,if not , wait for
+    while true; do
+      sleep 5
+      if [ "$(find /dev -mindepth 1 -name 'asm*' | wc -l)" -gt 0 ]; then
+        echo
+        echo
+        c1 "Successfully load udev." blue
+        break
+      fi
+    done
   fi
 
   ##Configure ASMDISK for grip.rsp
