@@ -567,11 +567,13 @@ if [ "${nodeNum}" -eq 1 ]; then
         exit 99
       fi
     fi
-    if [ "${DB_VERSION}" = "11.2.0.4" ] && [ "${OS_VERSION}" = "linux7" ]; then
-      if [ ! -f "${SOFTWAREDIR}"/p18370031_112040_Linux-x86-64.zip ]; then
-        c1 "Make sure the Patch 18370031 is in the ${SOFTWAREDIR} directory:" red
-        c1 "p18370031_112040_Linux-x86-64.zip" blue
-        exit 99
+    if [ "${OS_VER_PRI}" -eq 7 ]; then
+      if [[ "${DB_VERSION}" == "11" ]] || [[ "${DB_VERSION}" == "11g" ]] || [[ "${DB_VERSION}" == "11G" ]]; then
+        if [ ! -f "${SOFTWAREDIR}"/p18370031_112040_Linux-x86-64.zip ]; then
+          c1 "Make sure the Patch 18370031 is in the ${SOFTWAREDIR} directory:" red
+          c1 "p18370031_112040_Linux-x86-64.zip" blue
+          exit 99
+        fi
       fi
     fi
     # 12c rac grid install on linux7 with bug
