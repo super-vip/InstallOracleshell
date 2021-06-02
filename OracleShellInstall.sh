@@ -3133,6 +3133,7 @@ EOF
       c1 "p18370031_112040_Linux-x86-64.zip" blue
       exit 92
     else
+      rm -rf "${SOFTWAREDIR}"/p18370031_112040_Linux-x86-64.zip
       su - grid -c "${ENV_GRID_HOME}/OPatch/opatch napply -oh ${ENV_GRID_HOME} -local ${SOFTWAREDIR}/18370031 -silent"
       ##RAC scp  to  node 2
       if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
@@ -3140,6 +3141,7 @@ EOF
         ssh "$RAC2HOSTNAME" chown -R grid:oinstall "${SOFTWAREDIR}"/18370031
         su - grid -c "ssh ${RAC2HOSTNAME} ${ENV_GRID_HOME}/OPatch/opatch napply -oh ${ENV_GRID_HOME} -local ${SOFTWAREDIR}/18370031 -silent"
       fi
+      rm -rf "${SOFTWAREDIR}"/18370031
     fi
   fi
 
