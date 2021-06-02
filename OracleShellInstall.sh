@@ -3719,7 +3719,7 @@ EOF
       cd ~ || return
       rm -rf "/${SOFTWAREDIR:?}/""${OPATCH}"
       if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
-        ssh "$RAC2HOSTNAME" "/${SOFTWAREDIR:?}/""${OPATCH}"
+        ssh "$RAC2HOSTNAME" rm -rf "/${SOFTWAREDIR:?}/""${OPATCH}"
       fi
     fi
   fi
