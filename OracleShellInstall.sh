@@ -817,30 +817,33 @@ InstallRPM() {
     c1 "The ISO file is not mounted on system." red
     exit 99
   else
-    if [ ! -f /etc/yum.repos.d/local.repo ]; then
-      if [ "${OS_VERSION}" = "linux6" ] || [ "${OS_VERSION}" = "linux7" ]; then
-        {
-          echo "[server]"
-          echo "name=server"
-          echo "baseurl=file://""${mountPatch}"
-          echo "enabled=1"
-          echo "gpgcheck=1"
-        } >/etc/yum.repos.d/local.repo
-      elif [ "${OS_VERSION}" = "linux8" ]; then
-        {
-          echo "[BaseOS]"
-          echo "name=BaseOS"
-          echo "baseurl=file:///${mountPatch}/BaseOS"
-          echo "enabled=1"
-          echo "gpgcheck=1"
-          echo "[AppStream]"
-          echo "name=AppStream"
-          echo "baseurl=file:///${mountPatch}/AppStream"
-          echo "enabled=1"
-          echo "gpgcheck=1"
-        } >/etc/yum.repos.d/local.repo
-      fi
-      rpm --import "${mountPatch}"/RPM-GPG-KEY-redhat-release
+    ## move all repo bak
+    mkdir /etc/yum.repos.d/bak -p
+    mv /etc/yum.repos.d/* /etc/yum.repos.d/bak
+    ##if [ ! -f /etc/yum.repos.d/local.repo ]; then
+    if [ "${OS_VERSION}" = "linux6" ] || [ "${OS_VERSION}" = "linux7" ]; then
+      {
+        echo "[server]"
+        echo "name=server"
+        echo "baseurl=file://""${mountPatch}"
+        echo "enabled=1"
+        echo "gpgcheck=0"
+      } >/etc/yum.repos.d/local.repo
+    elif [ "${OS_VERSION}" = "linux8" ]; then
+      {
+        echo "[BaseOS]"
+        echo "name=BaseOS"
+        echo "baseurl=file:///${mountPatch}/BaseOS"
+        echo "enabled=1"
+        echo "gpgcheck=0"
+        echo "[AppStream]"
+        echo "name=AppStream"
+        echo "baseurl=file:///${mountPatch}/AppStream"
+        echo "enabled=1"
+        echo "gpgcheck=0"
+      } >/etc/yum.repos.d/local.repo
+      ##fi
+      ##rpm --import "${mountPatch}"/RPM-GPG-KEY-redhat-release
     fi
     if [ "${OS_VERSION}" = "linux6" ]; then
       if [ "${TuXingHua}" = "y" ] || [ "${TuXingHua}" = "Y" ]; then
