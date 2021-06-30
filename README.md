@@ -1,13 +1,10 @@
 # 作者简介
-
 > - 作者：LuciferLiu，中国DBA联盟(ACDU)成员。
 >- 目前从事Oracle DBA工作，曾从事 Oracle 数据库开发工作，主要服务于生产制造，汽车金融等行业。
 >- 现拥有Oracle OCP，OceanBase OBCA认证，擅长Oracle数据库运维开发，备份恢复，安装迁移，Linux自动化运维脚本编写等。
 
 ![镇楼](https://img-blog.csdnimg.cn/20210630010923263.png)
-
 # 前言
-
 作为IT人，相信大家多多少少都接触使用过Oracle数据库，但是很少有人安装过Oracle数据库，因为这种活一般都是DBA干的，比如博主😬。那么，如果自己想安装一套Oracle数据库进行测试，如何安装呢？
 
 - **首先想要成功安装一套Oracle数据库，至少需要满足以下几个条件：**
@@ -27,7 +24,6 @@
 >- 安装Oracle软件
 >- 创建数据库实例
    ![安装部署流程](https://img-blog.csdnimg.cn/20210613232723502.png)
-
 - **可参考文档：**
 
 > - [Windows主机如何玩转虚拟机Linux安装](https://blog.csdn.net/m0_50546016/article/details/117415206)
@@ -36,16 +32,12 @@
 >- [一步步教你Linux7安装Oracle RAC](https://luciferliu.blog.csdn.net/article/details/117857145)
 
 如果本篇文章只是如此，不免过于标题党，俗话说的好，抛转引玉，接下来就介绍下本文的主角：
-
 - **<font color='red'>Oracle一键安装脚本</font>，建库只需短短一行命令，一杯茶的功夫，敲代码的同时也不忘养生。**
   ![Oracle一键安装](https://img-blog.csdnimg.cn/20210630010805285.png)
-
 # 一、介绍
-
 俗说得好：**<font color='#f47920'>"懒人"推动世界的发展。</font>** 既然能用脚本解决的事情，为什么还要那么麻烦，干就完事儿了。
 
 ## 1 功能介绍
-
 - **本脚本有哪些功能？支持哪些版本？有哪些参数？不急，功能太多，待我慢慢道来：**
 
 > - 支持Oracle版本：11GR2、12C、18C、19C
@@ -60,67 +52,62 @@
 >- 创建数据库
 
 ## 2 参数介绍
-
 - **本脚本通过参数来预配置脚本命令，可通过帮助命令来查看有哪些参数：**
 
 > 执行 `./OracleShellInstall --help` 可以查看参数：
 
 ```bash
--i,		--PUBLICIP					PUBLICIP NETWORK ADDRESS
--n,		--HOSTNAME					HOSTNAME(orcl)
--o,		--ORACLE_SID				ORACLE_SID(orcl)
--c,		--ISCDB						IS CDB OR NOT(TRUE|FALSE)
--pb,	--PDBNAME					PDBNAME
--op,	--ORAPASSWD					ORACLE USER PASSWORD(oracle)
--b,		--ENV_BASE_DIR				ORACLE BASE DIR(/u01/app)
--s,		--CHARACTERSET				ORACLE CHARACTERSET(ZHS16GBK|AL32UTF8)
+-i,	--PUBLICIP				PUBLICIP NETWORK ADDRESS
+-n,	--HOSTNAME				HOSTNAME(orcl)
+-o,	--ORACLE_SID				ORACLE_SID(orcl)
+-c,	--ISCDB					IS CDB OR NOT(TRUE|FALSE)
+-pb,	--PDBNAME				PDBNAME
+-op,	--ORAPASSWD				ORACLE USER PASSWORD(oracle)
+-b,	--ENV_BASE_DIR			        ORACLE BASE DIR(/u01/app)
+-s,	--CHARACTERSET			        ORACLE CHARACTERSET(ZHS16GBK|AL32UTF8)
 -rs,	--ROOTPASSWD				ROOT USER PASSWORD
 -gp,	--GRIDPASSWD				GRID USER PASSWORD(oracle)
 -pb1,	--RAC1PUBLICIP				RAC NODE ONE PUBLIC IP
 -pb2,	--RAC2PUBLICIP				RAC NODE SECONED PUBLIC IP
--vi1,	--RAC1VIP					RAC NODE ONE VIRTUAL IP
--vi2,	--RAC2VIP					RAC NODE SECOND VIRTUAL IP
+-vi1,	--RAC1VIP				RAC NODE ONE VIRTUAL IP
+-vi2,	--RAC2VIP				RAC NODE SECOND VIRTUAL IP
 -pi1,	--RAC1PRIVIP				RAC NODE ONE PRIVATE IP
 -pi2,	--RAC2PRIVIP				RAC NODE SECOND PRIVATE IP
 -pi3,	--RAC1PRIVIP1				RAC NODE ONE PRIVATE IP
 -pi4,	--RAC2PRIVIP1				RAC NODE SECOND PRIVATE IP
--puf,	--RACPUBLICFCNAME	        RAC PUBLIC FC NAME
+-puf,	--RACPUBLICFCNAME	                RAC PUBLIC FC NAME
 -prf,	--RACPRIVFCNAME				RAC PRIVATE FC NAME
 -prf1,	--RACPRIVFCNAME1			RAC PRIVATE FC NAME
--si,	--RACSCANIP					RAC SCAN IP
+-si,	--RACSCANIP				RAC SCAN IP
 -dn,	--ASMDATANAME				RAC ASM DATADISKGROUP NAME(DATA)
 -on,	--ASMOCRNAME				RAC ASM OCRDISKGROUP NAME(OCR)
 -dd,	--DATA_BASEDISK				RAC DATADISK DISKNAME
 -od,	--OCRP_BASEDISK				RAC OCRDISK DISKNAME
--or,	--OCRREDUN					RAC OCR REDUNDANCY(EXTERNAL|NORMAL|HIGH)
--dr,	--DATAREDUN					RAC DATA REDUNDANCY(EXTERNAL|NORMAL|HIGH)
--tsi,   --TIMESERVERIP              RAC TIME SERVER IP
--txh    --TuXingHua                 Tu Xing Hua Install
--udev   --UDEV                      Whether Auto Set UDEV
--dns    --DNS                       RAC CONFIGURE DNS(Y|N)
--dnss   --DNSSERVER                 RAC CONFIGURE DNSSERVER LOCAL(Y|N)
--dnsn   --DNSNAME                   RAC DNSNAME(orcl.com)
--dnsi   --DNSIP                     RAC DNS IP
--m,		--ONLYCONFIGOS				ONLY CONFIG SYSTEM PARAMETER(Y|N)
--g,		--ONLYINSTALLGRID 			ONLY INSTALL GRID SOFTWARE(Y|N)
--w,		--ONLYINSTALLORACLE 		ONLY INSTALL ORACLE SOFTWARE(Y|N)
--ocd,	--ONLYCREATEDB		        ONLY CREATE DATABASE(Y|N)
--gpa,	--GRID RELEASE UPDATE		GRID RELEASE UPDATE(32072711)
--opa,	--ORACLE RELEASE UPDATE		ORACLE RELEASE UPDATE(32072711)
+-or,	--OCRREDUN				RAC OCR REDUNDANCY(EXTERNAL|NORMAL|HIGH)
+-dr,	--DATAREDUN				RAC DATA REDUNDANCY(EXTERNAL|NORMAL|HIGH)
+-tsi,   --TIMESERVERIP                          RAC TIME SERVER IP
+-txh    --TuXingHua                             Tu Xing Hua Install
+-udev   --UDEV                                  Whether Auto Set UDEV
+-dns    --DNS                                   RAC CONFIGURE DNS(Y|N)
+-dnss   --DNSSERVER                             RAC CONFIGURE DNSSERVER LOCAL(Y|N)
+-dnsn   --DNSNAME                               RAC DNSNAME(orcl.com)
+-dnsi   --DNSIP                                 RAC DNS IP
+-m,	--ONLYCONFIGOS				ONLY CONFIG SYSTEM PARAMETER(Y|N)
+-g,	--ONLYINSTALLGRID 			ONLY INSTALL GRID SOFTWARE(Y|N)
+-w,	--ONLYINSTALLORACLE 		        ONLY INSTALL ORACLE SOFTWARE(Y|N)
+-ocd,	--ONLYCREATEDB		                ONLY CREATE DATABASE(Y|N)
+-gpa,	--GRID RELEASE UPDATE		        GRID RELEASE UPDATE(32072711)
+-opa,	--ORACLE RELEASE UPDATE		        ORACLE RELEASE UPDATE(32072711)
 ```
-
 **<font color='blue'>看到上面的参数，是否感觉参数太多，但是这些参数都有用，容我一个个慢慢道来：</font>**
-
 - **`-i`  全称 PUBLICIP：当前主机用于访问的IP，<font color='red'>必填参数</font>。**
 
 > 使用方式：`-i 10.211.55.100`
-
 - **`-n` 全称 HOSTNAME：当前主机的主机名，默认值为 orcl。**
 
 > 使用方式：`-n orcl`
 > 如果选择rac模式，节点1、2主机名自动取为：orcl01、orcl02。
 ![rac主机名](https://img-blog.csdnimg.cn/20210614005440752.png)
-
 - **`-o` 全称 ORACLE_SID：Oracle实例名称，默认值为 orcl。**
 
 > 使用方式：`-o orcl`
@@ -284,7 +271,6 @@
 **<font color='blue'>通过以上的参数介绍，相信大家对脚本的功能已经一览无余了，可以说是非常强大。是不是已经心动不如行动，想要尝试下进行安装了呢？接下来将介绍如何使用脚本。</font>**
 
 # 二、使用
-
 既然已经了解脚本的功能和参数，接下来就是了解如何使用脚本。
 ![脚本流程图](https://img-blog.csdnimg.cn/20210603100942949.png)
 **直接上命令：** `./OracleShellInstall.sh -i 10.211.55.100`
@@ -292,24 +278,18 @@
 **Notes：** 最便捷安装方式，默认参数不设置，只需加上主机IP，即可一键安装Oracle数据库。
 
 ## 1 创建软件目录，例如：/soft
-
 ```
 mkdir /soft
 ```
-
 ## 2 挂载Linux安装镜像
-
 ```bash
 ## 1.通过cdrom挂载
 mount /dev/cdrom /mnt
 ## 2.通过安装镜像源挂载
 mount -o loop /soft/rhel-server-7.9-x86_64-dvd.iso /mnt
 ```
-
 ![镜像挂载](https://img-blog.csdnimg.cn/20210603104047853.png)
-
 ## 3 上传安装介质和脚本到软件目录
-
 ```bash
 ## 一键安装shell脚本
 140K	OracleShellInstall.sh
@@ -319,23 +299,16 @@ mount -o loop /soft/rhel-server-7.9-x86_64-dvd.iso /mnt
 ## 授权脚本执行权限
 chmod +x OracleShellInstall.sh
 ```
-
 ![安装介质](https://img-blog.csdnimg.cn/20210603104132703.png)
-
 ## 4 执行安装：
-
 ```
 ./OracleShellInstall.sh -i 10.211.55.100
 ```
-
 ![执行安装](https://img-blog.csdnimg.cn/20210603104254309.png)
 **等待5-10分钟左右，安装成功。**
 ![安装成功提示](https://img-blog.csdnimg.cn/2021060310483362.png)![数据库信息](https://img-blog.csdnimg.cn/20210603105049292.png)
-
 ## 5 数据库连接使用
-
 不知道如何安装PLSQL的同学，可以参考：[零基础如何玩转PL/SQL DEVELOPER？](https://luciferliu.blog.csdn.net/article/details/117913049)
-
 - 创建连接用户：
   ![创建连接用户](https://img-blog.csdnimg.cn/20210603110123160.png)
 - plsql连接：
@@ -345,9 +318,7 @@ chmod +x OracleShellInstall.sh
 **<font color='blue'>通过如上简单的使用教程，轻松安装Oracle数据库，大大缩减人工和时间成本。</font>**
 
 # 三、示例
-
 ## 1 单实例安装
-
 ```bash
 ./OracleShellInstall.sh -i 10.211.55.100 `#Public ip`\
 -n orcl `# hostname`\
@@ -359,7 +330,6 @@ chmod +x OracleShellInstall.sh
 ```
 
 ## 2 RAC安装
-
 ```bash
 ./OracleShellInstall.sh -i 10.211.55.100 `#Public ip`\
 -n rac `# hostname`\
