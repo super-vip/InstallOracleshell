@@ -310,8 +310,11 @@ chmod +x OracleShellInstall.sh
 ## 5 数据库连接使用
 不知道如何安装PLSQL的同学，可以参考：[零基础如何玩转PL/SQL DEVELOPER？](https://luciferliu.blog.csdn.net/article/details/117913049)
 - 创建连接用户：
+
   ![创建连接用户](https://img-blog.csdnimg.cn/20210603110123160.png)
+
 - plsql连接：
+
   ![plsql连接](https://img-blog.csdnimg.cn/20210603110313601.png)
   ![测试数据](https://img-blog.csdnimg.cn/2021060311050120.png)
 
