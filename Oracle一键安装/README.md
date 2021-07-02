@@ -368,4 +368,8 @@ chmod +x OracleShellInstall.sh
 ---
 本次分享到此结束啦~
 
-如果觉得文章对你有帮助，请`star`一下，你的支持就是我创作最大的动力，技术交流可以**关注公众号：Lucifer三思而后行**
+如果觉得文章对你有帮助，请`star`一下，你的支持就是我创作最大的动力。
+
+技术交流可以**关注公众号：Lucifer三思而后行**
+
+![Lucifer三思而后行](https://img-blog.csdnimg.cn/20210702105616339.jpg)
