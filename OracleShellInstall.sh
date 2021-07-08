@@ -3382,7 +3382,7 @@ UnzipDBSoft() {
       rm -rf "${ENV_ORACLE_HOME}"
     fi
     if unzip -o "${SOFTWAREDIR}"/LINUX.X64_180000_db_home.zip -d "${ENV_ORACLE_HOME}"; then
-     ## rm -rf "${SOFTWAREDIR}"/LINUX.X64_180000_db_home.zip
+      ## rm -rf "${SOFTWAREDIR}"/LINUX.X64_180000_db_home.zip
       chown -R oracle:oinstall "${ENV_ORACLE_HOME}"
     else
       c1 "Make sure the database installation package is in the ${SOFTWAREDIR} directory:" red
