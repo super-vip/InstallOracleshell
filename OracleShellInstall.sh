@@ -2298,7 +2298,7 @@ UnzipGridSoft() {
       rm -rf "${SOFTWAREDIR}"/grid
     fi
     if unzip -o "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_3of7.zip -d "${SOFTWAREDIR}"; then
-      rm -rf "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_3of7.zip
+      ##rm -rf "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_3of7.zip
       chown -R grid:oinstall "${SOFTWAREDIR}"/grid
     else
       c1 "Make sure the grid installation package is in the ${SOFTWAREDIR} directory:" red
@@ -2314,7 +2314,7 @@ UnzipGridSoft() {
       fi
     fi
     if unzip -o "${SOFTWAREDIR}"/LINUX.X64_122010_grid_home.zip -d "${ENV_GRID_HOME}"; then
-      rm -rf "${SOFTWAREDIR}"/LINUX.X64_122010_grid_home.zip
+      ##rm -rf "${SOFTWAREDIR}"/LINUX.X64_122010_grid_home.zip
       chown -R grid:oinstall "${ENV_GRID_HOME}"
     else
       c1 "Make sure the grid installation package is in the ${SOFTWAREDIR} directory:" red
@@ -2330,7 +2330,7 @@ UnzipGridSoft() {
       fi
     fi
     if unzip -o "${SOFTWAREDIR}"/LINUX.X64_180000_grid_home.zip -d "${ENV_GRID_HOME}"; then
-      rm -rf "${SOFTWAREDIR}"/LINUX.X64_180000_grid_home.zip
+      ##rm -rf "${SOFTWAREDIR}"/LINUX.X64_180000_grid_home.zip
       chown -R grid:oinstall "${ENV_GRID_HOME}"
     else
       c1 "Make sure the grid installation package is in the ${SOFTWAREDIR} directory:" red
@@ -2346,7 +2346,7 @@ UnzipGridSoft() {
       fi
     fi
     if unzip -o "${SOFTWAREDIR}"/LINUX.X64_193000_grid_home.zip -d "${ENV_GRID_HOME}"; then
-      rm -rf "${SOFTWAREDIR}"/LINUX.X64_193000_grid_home.zip
+      ##rm -rf "${SOFTWAREDIR}"/LINUX.X64_193000_grid_home.zip
       chown -R grid:oinstall "${ENV_GRID_HOME}"
     else
       c1 "Make sure the grid installation package is in the ${SOFTWAREDIR} directory:" red
@@ -3168,7 +3168,7 @@ EOF
       c1 "p18370031_112040_Linux-x86-64.zip" blue
       exit 92
     else
-      rm -rf "${SOFTWAREDIR}"/p18370031_112040_Linux-x86-64.zip
+      ##rm -rf "${SOFTWAREDIR}"/p18370031_112040_Linux-x86-64.zip
       su - grid -c "${ENV_GRID_HOME}/OPatch/opatch napply -oh ${ENV_GRID_HOME} -local ${SOFTWAREDIR}/18370031 -silent"
       ##RAC scp  to  node 2
       if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
@@ -3347,7 +3347,7 @@ UnzipDBSoft() {
       rm -rf "${SOFTWAREDIR}"/database
     fi
     if unzip -o "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_1of7.zip -d "${SOFTWAREDIR}"; then
-      rm -rf "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_1of7.zip
+      ##rm -rf "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_1of7.zip
       chown -R oracle:oinstall "${SOFTWAREDIR}"/database
     else
       c1 "Make sure the database installation package is in the ${SOFTWAREDIR} directory:" red
@@ -3356,7 +3356,7 @@ UnzipDBSoft() {
     fi
 
     if unzip -o "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_2of7.zip -d "${SOFTWAREDIR}"; then
-      rm -rf "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_2of7.zip
+      ##rm -rf "${SOFTWAREDIR}"/p13390677_112040_Linux-x86-64_2of7.zip
       chown -R oracle:oinstall "${SOFTWAREDIR}"/database
     else
       c1 "Make sure the database installation package is in the ${SOFTWAREDIR} directory:" red
@@ -3369,7 +3369,7 @@ UnzipDBSoft() {
       rm -rf "${SOFTWAREDIR}"/database
     fi
     if unzip -o "${SOFTWAREDIR}"/LINUX.X64_122010_db_home.zip -d "${SOFTWAREDIR}"; then
-      rm -rf "${SOFTWAREDIR}"/LINUX.X64_122010_db_home.zip
+      ##rm -rf "${SOFTWAREDIR}"/LINUX.X64_122010_db_home.zip
       chown -R oracle:oinstall "${SOFTWAREDIR}"/database
     else
       c1 "Make sure the database installation package is in the ${SOFTWAREDIR} directory:" red
@@ -3382,7 +3382,7 @@ UnzipDBSoft() {
       rm -rf "${ENV_ORACLE_HOME}"
     fi
     if unzip -o "${SOFTWAREDIR}"/LINUX.X64_180000_db_home.zip -d "${ENV_ORACLE_HOME}"; then
-      rm -rf "${SOFTWAREDIR}"/LINUX.X64_180000_db_home.zip
+     ## rm -rf "${SOFTWAREDIR}"/LINUX.X64_180000_db_home.zip
       chown -R oracle:oinstall "${ENV_ORACLE_HOME}"
     else
       c1 "Make sure the database installation package is in the ${SOFTWAREDIR} directory:" red
@@ -3395,7 +3395,7 @@ UnzipDBSoft() {
       rm -rf "${ENV_ORACLE_HOME}"
     fi
     if unzip -o "${SOFTWAREDIR}"/LINUX.X64_193000_db_home.zip -d "${ENV_ORACLE_HOME}"; then
-      rm -rf "${SOFTWAREDIR}"/LINUX.X64_193000_db_home.zip
+      ##rm -rf "${SOFTWAREDIR}"/LINUX.X64_193000_db_home.zip
       chown -R oracle:oinstall "${ENV_ORACLE_HOME}"
     else
       c1 "Make sure the database installation package is in the ${SOFTWAREDIR} directory:" red
@@ -3420,7 +3420,8 @@ InstallDBsoftware() {
     ## 18C
     if [ "${DB_VERSION}" = "18.0.0.0" ]; then
       if su - oracle -c "unzip -o ${SOFTWAREDIR}/p6880880_180000_Linux-x86-64.zip -d ${ENV_ORACLE_HOME}"; then
-        rm -rf "${SOFTWAREDIR}"/p6880880_180000_Linux-x86-64.zip
+        ##rm -rf "${SOFTWAREDIR}"/p6880880_180000_Linux-x86-64.zip
+        echo "unzip p6880880 successful"
       else
         c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
         c1 "p6880880_180000_Linux-x86-64.zip" blue
@@ -3429,7 +3430,8 @@ InstallDBsoftware() {
     ## 19C
     elif [ "${DB_VERSION}" = "19.3.0.0" ]; then
       if su - oracle -c "unzip -o ${SOFTWAREDIR}/p6880880_190000_Linux-x86-64.zip -d ${ENV_ORACLE_HOME}"; then
-        rm -rf "${SOFTWAREDIR}"/p6880880_190000_Linux-x86-64.zip
+        ##rm -rf "${SOFTWAREDIR}"/p6880880_190000_Linux-x86-64.zip
+        echo "unzip p6880880 successful"
       else
         c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
         c1 "p6880880_190000_Linux-x86-64.zip" blue
@@ -3669,7 +3671,8 @@ EOF
     ## 11G
     if [ "${DB_VERSION}" = "11.2.0.4" ]; then
       if su - oracle -c "unzip -o ${SOFTWAREDIR}/p6880880_112000_Linux-x86-64.zip -d ${ENV_ORACLE_HOME}"; then
-        rm -rf "${SOFTWAREDIR}"/p6880880_112000_Linux-x86-64.zip
+        ##rm -rf "${SOFTWAREDIR}"/p6880880_112000_Linux-x86-64.zip
+        echo "unzip p6880880 successful"
       else
         c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
         c1 "p6880880_112000_Linux-x86-64.zip" blue
@@ -3678,7 +3681,8 @@ EOF
       ## 12C
     elif [ "${DB_VERSION}" = "12.2.0.1" ]; then
       if su - oracle -c "unzip -o ${SOFTWAREDIR}/p6880880_122010_Linux-x86-64.zip -d ${ENV_ORACLE_HOME}"; then
-        rm -rf "${SOFTWAREDIR}"/p6880880_122010_Linux-x86-64.zip
+        ##rm -rf "${SOFTWAREDIR}"/p6880880_122010_Linux-x86-64.zip
+        echo "unzip p6880880 successful"
       else
         c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
         c1 "p6880880_122010_Linux-x86-64.zip" blue
