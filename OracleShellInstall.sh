@@ -38,6 +38,7 @@ ARCHIVEDIR=/archivelog
 BACKUPDIR=/backup
 SCRIPTSDIR=/home/oracle/scripts
 CHARACTERSET=AL32UTF8
+NCHARACTERSET=AL16UTF16
 GRID_SID=+ASM
 RACPUBLICFCNAME=
 RACPRIVFCNAME=
@@ -259,6 +260,7 @@ help() {
   c1 "-op,		--ORAPASSWD			ORACLE USER PASSWORD(oracle)" green
   c1 "-b,		--ENV_BASE_DIR			ORACLE BASE DIR(/u01/app)" green
   c1 "-s,		--CHARACTERSET			ORACLE CHARACTERSET(ZHS16GBK|AL32UTF8)" green
+  c1 "-ns,		--NCHARACTERSET			ORACLE NATIONAL CHARACTERSET(AL16UTF16|UTF8)" green
   c1 "-rs,		--ROOTPASSWD			ROOT USER PASSWORD" green
   c1 "-gp,		--GRIDPASSWD			GRID USER PASSWORD(oracle)" green
   c1 "-pb1,		--RAC1PUBLICIP			RAC NODE ONE PUBLIC IP" green
@@ -328,6 +330,10 @@ while [ -n "$1" ]; do #Here by judging whether $1 exists
     ;;
   -s | --CHARACTERSET)
     CHARACTERSET=$2
+    shift 2
+    ;;
+  -ns | --NCHARACTERSET)
+    NCHARACTERSET=$2
     shift 2
     ;;
   -m | --ONLYCONFIGOS)
@@ -545,8 +551,8 @@ if [ "${nodeNum}" -eq 1 ]; then
 fi
 
 if [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "rac" ]; then
-  RAC1HOSTNAME=${HOSTNAME}01
-  RAC2HOSTNAME=${HOSTNAME}02
+  RAC1HOSTNAME=${HOSTNAME}1
+  RAC2HOSTNAME=${HOSTNAME}2
 fi
 
 ##Judge whether ip or dbversion is empty, if it is empty, exit
@@ -599,6 +605,7 @@ if [ "${nodeNum}" -eq 1 ]; then
         echo -e " -op ${ORAPASSWD}\c"
         echo -e " -gp ${GRIDPASSWD}\c"
         echo -e " -s ${CHARACTERSET}\c"
+        echo -e " -ns ${NCHARACTERSET}\c"
         echo -e " -pb1 ${RAC1PUBLICIP} -pb2 ${RAC2PUBLICIP}\c"
         echo -e " -vi1 ${RAC1VIP} -vi2 ${RAC2VIP}\c"
         echo -e " -pi1 ${RAC1PRIVIP} -pi2 ${RAC2PRIVIP}\c"
@@ -1107,10 +1114,16 @@ EOF
         ##add private1
         if [ -n "${RAC1PRIVIP1}" ]; then
           cat <<EOF >>/etc/hosts
-
 ##Private IP 2
 $RAC1PRIVIP1 $RAC1HOSTNAME-priv1
 $RAC2PRIVIP1 $RAC2HOSTNAME-priv1
+
+##Virtual IP
+$RAC1VIP $RAC1HOSTNAME-vip
+$RAC2VIP $RAC2HOSTNAME-vip
+
+##Scan IP
+$RACSCANIP $RACSCANNAME
 EOF
         else
           cat <<EOF >>/etc/hosts
@@ -1512,6 +1525,12 @@ $RAC2HOSTNAME
 $RAC1HOSTNAME-priv
 $RAC2HOSTNAME-priv
 EOF
+  if [ -n "${RAC1PRIVIP1}" ]; then
+    cat <<EOF >>"${SOFTWAREDIR}"/sshhostList.cfg
+$RAC1HOSTNAME-priv1
+$RAC2HOSTNAME-priv1
+EOF
+  fi
   rm -rf /root/.ssh
   rm -rf /home/oracle/.ssh
   rm -rf /home/grid/.ssh
@@ -3792,18 +3811,18 @@ EOF
 createDB() {
   if [ "${DB_VERSION}" = "11.2.0.4" ]; then
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM  -sampleSchema true -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet AL16UTF16 -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM  -sampleSchema true -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     elif [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM  -sampleSchema true -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet AL16UTF16 -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM  -sampleSchema true -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     else
       su - oracle -c "lsnrctl start"
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbname ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS -datafileDestination ${ORADATADIR} -sampleSchema true -characterSet ${CHARACTERSET} -nationalCharacterSet AL16UTF16 -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbname ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS -datafileDestination ${ORADATADIR} -sampleSchema true -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -3815,7 +3834,7 @@ createDB() {
   elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
       ASMDATANAME="+${ASMDATANAME}"
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType RAC -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet AL16UTF16 -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType RAC -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -3831,13 +3850,13 @@ createDB() {
         # usermod -a -G racdba grid
         # su - oracle -c "relink all"
       fi
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType SINGLE -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet AL16UTF16 -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType SINGLE -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     else
       su - oracle -c "lsnrctl start"
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS  -databaseConfigType SINGLE -datafileDestination ${ORADATADIR} -enableArchive true -archiveLogDest ${ARCHIVEDIR} -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet AL16UTF16 -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS  -databaseConfigType SINGLE -datafileDestination ${ORADATADIR} -enableArchive true -archiveLogDest ${ARCHIVEDIR} -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
