@@ -1,7 +1,8 @@
 #!/bin/bash
 echo "####################################################################################"
 echo "##Author 	: LuciferLiu"
-echo "##Blog   	: https://blog.csdn.net/m0_50546016"
+echo "##Blog   	  :https://luciferliu.blog.csdn.net/"
+echo "##微信公众号:Lucifer三思而后行"
 echo "##Github        : https://github.com/pc-study/InstallOracleshell"
 echo "##Version	: 1.0"
 echo "##Function   	: Oracle 11g/12c/18c/19c(Single and Rac) install on Linux 6/7/8"
@@ -78,6 +79,7 @@ DNS=N
 DNSSERVER=N
 DNSNAME=
 DNSIP=
+ISO=Y
 ###################################################################################
 ##The following is a custom function：
 ####################################################################################
@@ -294,6 +296,7 @@ help() {
   c1 "-ocd,		--ONLYCREATEDB		        ONLY CREATE DATABASE(Y|N)" green
   c1 "-gpa,		--GRID RELEASE UPDATE		GRID RELEASE UPDATE(32072711)" green
   c1 "-opa,		--ORACLE RELEASE UPDATE		ORACLE RELEASE UPDATE(32072711)" green
+  c1 "-iso,   --ISO                                       WHETHER MOUNT ISO OR YUN" green
   exit 0
 }
 
@@ -486,6 +489,10 @@ while [ -n "$1" ]; do #Here by judging whether $1 exists
     ;;
   -dnsi | --DNSIP)
     DNSIP=$2
+    shift 2
+    ;;
+  -iso | --ISO)
+    ISO=$2
     shift 2
     ;;
   -h | --help) help ;; # function help is called
@@ -818,138 +825,141 @@ InstallRPM() {
   ####################################################################################
   # Judge ISO file mount status
   ####################################################################################
-  mountPatch=$(mount | grep -E "iso|ISO" | awk '{print $3}')
-  if [ ! "${mountPatch}" ]; then
-    echo
-    c1 "The ISO file is not mounted on system." red
-    exit 99
-  else
-    ## move all repo bak
-    mkdir /etc/yum.repos.d/bak -p
-    mv /etc/yum.repos.d/* /etc/yum.repos.d/bak
-    ##if [ ! -f /etc/yum.repos.d/local.repo ]; then
-    if [ "${OS_VERSION}" = "linux6" ] || [ "${OS_VERSION}" = "linux7" ]; then
-      {
-        echo "[server]"
-        echo "name=server"
-        echo "baseurl=file://""${mountPatch}"
-        echo "enabled=1"
-        echo "gpgcheck=0"
-      } >/etc/yum.repos.d/local.repo
-    elif [ "${OS_VERSION}" = "linux8" ]; then
-      {
-        echo "[BaseOS]"
-        echo "name=BaseOS"
-        echo "baseurl=file:///${mountPatch}/BaseOS"
-        echo "enabled=1"
-        echo "gpgcheck=0"
-        echo "[AppStream]"
-        echo "name=AppStream"
-        echo "baseurl=file:///${mountPatch}/AppStream"
-        echo "enabled=1"
-        echo "gpgcheck=0"
-      } >/etc/yum.repos.d/local.repo
-      ##fi
-      ##rpm --import "${mountPatch}"/RPM-GPG-KEY-redhat-release
-    fi
-    if [ "${OS_VERSION}" = "linux6" ]; then
-      if [ "${TuXingHua}" = "y" ] || [ "${TuXingHua}" = "Y" ]; then
-        #LINUX 6
-        yum groupinstall -y "X Window System"
-        yum groupinstall -y "Desktop"
-        yum install -y nautilus-open-terminal
-        yum install -y tigervnc*
-      fi
-      if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline psmisc ksh nfs-utils --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
-        yum install -y bc \
-          binutils \
-          compat-libcap1 \
-          compat-libstdc++-33 \
-          gcc \
-          gcc-c++ \
-          elfutils-libelf \
-          elfutils-libelf-devel \
-          glibc \
-          glibc-devel \
-          libaio libaio-devel \
-          libgcc \
-          libstdc++ \
-          libstdc++-devel \
-          libxcb \
-          libX11 \
-          libXau \
-          libXi \
-          libXrender \
-          make \
-          net-tools \
-          smartmontools \
-          sysstat \
-          e2fsprogs \
-          e2fsprogs-libs \
-          expect \
-          unzip \
-          openssh-clients \
-          readline* \
-          psmisc \
-          ksh \
-          nfs-utils --skip-broken
-      fi
-    elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-      if [ "${TuXingHua}" = "y" ] || [ "${TuXingHua}" = "Y" ]; then
-        #LINUX 7 && LINUX 8
-        yum groupinstall -y "Server with GUI"
-        yum install -y tigervnc*
-      fi
-      if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline psmisc --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
-        yum install -y bc \
-          binutils \
-          compat-libcap1 \
-          compat-libstdc++-33 \
-          gcc \
-          gcc-c++ \
-          elfutils-libelf \
-          elfutils-libelf-devel \
-          glibc \
-          glibc-devel \
-          ksh \
-          libaio \
-          libaio-devel \
-          libgcc \
-          libstdc++ \
-          libstdc++-devel \
-          libxcb \
-          libX11 \
-          libXau \
-          libXi \
-          libXtst \
-          libXrender \
-          libXrender-devel \
-          make \
-          net-tools \
-          nfs-utils \
-          smartmontools \
-          sysstat \
-          e2fsprogs \
-          e2fsprogs-libs \
-          fontconfig-devel \
-          expect \
-          unzip \
-          openssh-clients \
-          readline* \
-          psmisc --skip-broken
-      fi
-      ##Solutions: error while loading shared libraries: libnsl.so.1: cannot open shared object
-      ##Requirements for Installing Oracle Database/Client 19c on OL8 or RHEL8 64-bit (x86-64) (Doc ID 2668780.1)
-      if [ "${OS_VERSION}" = "linux8" ]; then
-        dnf install -y librdmacm
-        dnf install -y libnsl*
-        dnf install -y libibverbs
-        ##Linux Troubleshooting – semanage command not found in CentOS 7/8 And RHEL 7/8
-        dnf install -y policycoreutils-python-utils
+  if [ "${ISO}" = "Y" ]; then
+    mountPatch=$(mount | grep -E "iso|ISO" | awk '{print $3}')
+    if [ ! "${mountPatch}" ]; then
+      echo
+      c1 "The ISO file is not mounted on system." red
+      exit 99
+    else
+      ## move all repo bak
+      mkdir /etc/yum.repos.d/bak -p
+      mv /etc/yum.repos.d/* /etc/yum.repos.d/bak
+      ##if [ ! -f /etc/yum.repos.d/local.repo ]; then
+      if [ "${OS_VERSION}" = "linux6" ] || [ "${OS_VERSION}" = "linux7" ]; then
+        {
+          echo "[server]"
+          echo "name=server"
+          echo "baseurl=file://""${mountPatch}"
+          echo "enabled=1"
+          echo "gpgcheck=0"
+        } >/etc/yum.repos.d/local.repo
+      elif [ "${OS_VERSION}" = "linux8" ]; then
+        {
+          echo "[BaseOS]"
+          echo "name=BaseOS"
+          echo "baseurl=file:///${mountPatch}/BaseOS"
+          echo "enabled=1"
+          echo "gpgcheck=0"
+          echo "[AppStream]"
+          echo "name=AppStream"
+          echo "baseurl=file:///${mountPatch}/AppStream"
+          echo "enabled=1"
+          echo "gpgcheck=0"
+        } >/etc/yum.repos.d/local.repo
+        ##fi
+        ##rpm --import "${mountPatch}"/RPM-GPG-KEY-redhat-release
       fi
     fi
-
   fi
+
+  if [ "${OS_VERSION}" = "linux6" ]; then
+    if [ "${TuXingHua}" = "y" ] || [ "${TuXingHua}" = "Y" ]; then
+      #LINUX 6
+      yum groupinstall -y "X Window System"
+      yum groupinstall -y "Desktop"
+      yum install -y nautilus-open-terminal
+      yum install -y tigervnc*
+    fi
+    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline psmisc ksh nfs-utils --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
+      yum install -y bc \
+        binutils \
+        compat-libcap1 \
+        compat-libstdc++-33 \
+        gcc \
+        gcc-c++ \
+        elfutils-libelf \
+        elfutils-libelf-devel \
+        glibc \
+        glibc-devel \
+        libaio libaio-devel \
+        libgcc \
+        libstdc++ \
+        libstdc++-devel \
+        libxcb \
+        libX11 \
+        libXau \
+        libXi \
+        libXrender \
+        make \
+        net-tools \
+        smartmontools \
+        sysstat \
+        e2fsprogs \
+        e2fsprogs-libs \
+        expect \
+        unzip \
+        openssh-clients \
+        readline* \
+        psmisc \
+        ksh \
+        nfs-utils --skip-broken
+    fi
+  elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+    if [ "${TuXingHua}" = "y" ] || [ "${TuXingHua}" = "Y" ]; then
+      #LINUX 7 && LINUX 8
+      yum groupinstall -y "Server with GUI"
+      yum install -y tigervnc*
+    fi
+    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline psmisc --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
+      yum install -y bc \
+        binutils \
+        compat-libcap1 \
+        compat-libstdc++-33 \
+        gcc \
+        gcc-c++ \
+        elfutils-libelf \
+        elfutils-libelf-devel \
+        glibc \
+        glibc-devel \
+        ksh \
+        libaio \
+        libaio-devel \
+        libgcc \
+        libstdc++ \
+        libstdc++-devel \
+        libxcb \
+        libX11 \
+        libXau \
+        libXi \
+        libXtst \
+        libXrender \
+        libXrender-devel \
+        make \
+        net-tools \
+        nfs-utils \
+        smartmontools \
+        sysstat \
+        e2fsprogs \
+        e2fsprogs-libs \
+        fontconfig-devel \
+        expect \
+        unzip \
+        openssh-clients \
+        readline* \
+        psmisc --skip-broken
+    fi
+    ##Solutions: error while loading shared libraries: libnsl.so.1: cannot open shared object
+    ##Requirements for Installing Oracle Database/Client 19c on OL8 or RHEL8 64-bit (x86-64) (Doc ID 2668780.1)
+    if [ "${OS_VERSION}" = "linux8" ]; then
+      dnf install -y librdmacm
+      dnf install -y libnsl*
+      dnf install -y libibverbs
+      ##Linux Troubleshooting – semanage command not found in CentOS 7/8 And RHEL 7/8
+      dnf install -y policycoreutils-python-utils
+    fi
+  fi
+
   ## yum install -y openssh
   if [ "$nodeNum" -eq 1 ]; then
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
