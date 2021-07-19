@@ -1,8 +1,8 @@
 #!/bin/bash
 echo "####################################################################################"
 echo "##Author 	: LuciferLiu"
-echo "##Blog   	  :https://luciferliu.blog.csdn.net/"
-echo "##微信公众号:Lucifer三思而后行"
+echo "##Blog   	: https://luciferliu.blog.csdn.net/"
+echo "##微信公众号	: Lucifer三思而后行"
 echo "##Github        : https://github.com/pc-study/InstallOracleshell"
 echo "##Version	: 1.0"
 echo "##Function   	: Oracle 11g/12c/18c/19c(Single and Rac) install on Linux 6/7/8"
@@ -296,7 +296,7 @@ help() {
   c1 "-ocd,		--ONLYCREATEDB		        ONLY CREATE DATABASE(Y|N)" green
   c1 "-gpa,		--GRID RELEASE UPDATE		GRID RELEASE UPDATE(32072711)" green
   c1 "-opa,		--ORACLE RELEASE UPDATE		ORACLE RELEASE UPDATE(32072711)" green
-  c1 "-iso,   --ISO                                       WHETHER MOUNT ISO OR YUN" green
+  c1 "-iso,		--ISO                           WHETHER MOUNT ISO OR YUN" green
   exit 0
 }
 
@@ -4179,6 +4179,84 @@ EOF
       scp "${ENV_ORACLE_HOME}"/network/admin/sqlnet.ora "${RAC2HOSTNAME}":"${ENV_ORACLE_HOME}"/network/admin/
     fi
   fi
+  ####################################################################################
+  # Configure glogin.sql
+  ####################################################################################
+  if [ "$(grep -E -c "OracleBegin" "${ENV_ORACLE_HOME}"/sqlplus/admin/glogin.sql)" -eq 0 ]; then
+    [ ! -f "${ENV_ORACLE_HOME}"/sqlplus/admin/glogin.sql."${DAYTIME}" ] && cp "${ENV_ORACLE_HOME}"/sqlplus/admin/glogin.sql "${ENV_ORACLE_HOME}"/sqlplus/admin/glogin.sql."${DAYTIME}"
+    cat <<EOF >"${ENV_ORACLE_HOME}"/sqlplus/admin/glogin.sql
+--OracleBegin
+define _editor=vi
+set serveroutput on size 1000000
+set long 200
+set timing on
+set linesize 500
+set pagesize 9999
+set trimspool on
+col Name format a80
+set termout off
+col global_name new_value gname
+define gname=idle
+select lower(user) || '@' || substr( global_name, 1, decode( dot, 0,length(global_name), dot-1) ) global_name from (select global_name, instr(global_name,'.') dot from global_name );
+set sqlprompt '&gname _DATE> '
+ALTER SESSION SET nls_date_format = 'HH24:MI:SS';
+set termout on
+
+col TABLESPACE_NAME for a20
+select tbs_used_info.tablespace_name,
+       tbs_used_info.alloc_mb,
+       tbs_used_info.used_mb,
+       tbs_used_info.max_mb,
+       tbs_used_info.free_of_max_mb,
+       tbs_used_info.used_of_max || '%' used_of_max_pct
+  from (select a.tablespace_name,
+               round(a.bytes_alloc / 1024 / 1024) alloc_mb,
+               round((a.bytes_alloc - nvl(b.bytes_free,
+                                          0)) / 1024 / 1024) used_mb,
+               round((a.bytes_alloc - nvl(b.bytes_free,
+                                          0)) * 100 / a.maxbytes) used_of_max,
+               round((a.maxbytes - a.bytes_alloc + nvl(b.bytes_free,
+                                                       0)) / 1048576) free_of_max_mb,
+               round(a.maxbytes / 1048576) max_mb
+          from (select f.tablespace_name,
+                       sum(f.bytes) bytes_alloc,
+                       sum(decode(f.autoextensible,
+                                  'YES',
+                                  f.maxbytes,
+                                  'NO',
+                                  f.bytes)) maxbytes
+                  from dba_data_files f
+                 group by tablespace_name) a,
+               (select f.tablespace_name,
+                       sum(f.bytes) bytes_free
+                  from dba_free_space f
+                 group by tablespace_name) b
+         where a.tablespace_name = b.tablespace_name(+)) tbs_used_info
+ order by tbs_used_info.used_of_max desc;
+
+col status for a10
+col input_type for a20
+col INPUT_BYTES_DISPLAY for a10
+col OUTPUT_BYTES_DISPLAY for a10
+col TIME_TAKEN_DISPLAY for a10
+
+select input_type,
+       status,
+       to_char(start_time,
+               'yyyy-mm-dd hh24:mi:ss'),
+       to_char(end_time,
+               'yyyy-mm-dd hh24:mi:ss'),
+       input_bytes_display,
+       output_bytes_display,
+       time_taken_display,
+       COMPRESSION_RATIO
+  from v\$rman_backup_job_details
+ where start_time > date '2021-07-01'
+ order by 3 desc;
+ --OracleEnd
+EOF
+  fi
+
   if [ "$(find "/home/oracle" -maxdepth 1 -name '*.sql' | wc -l)" -gt 0 ]; then
     cd ~ || return
     rm -rf /home/oracle/*.sql
