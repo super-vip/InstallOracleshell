@@ -17,7 +17,6 @@ echo "##########################################################################
 # Parameters For Install
 ####################################################################################
 #Oracle Install Mode(RAC/Single/RESTART)
-OracleInstallMode=
 SOFTWAREDIR=$(pwd)
 DAYTIME=$(date +%Y%m%d)
 RELS=$(more /etc/system-release)
@@ -549,11 +548,19 @@ if [ "${nodeNum}" -eq 1 ]; then
   echo
   c1 "Please Choose Oracle Install Mode(single/restart/rac) :" blue
   echo
-  read -r OracleInstallMode
+  if [ -z "${OracleInstallMode}" ]; then
+    read -r OracleInstallMode
+  else
+    echo "${OracleInstallMode}"
+  fi
   echo
   c1 "Please Choose Oracle Database Version(11g/12c/18c/19c) :" blue
   echo
-  read -r DB_VERSION
+  if [ -z "${DB_VERSION}" ]; then
+    read -r DB_VERSION
+  else
+    echo "${DB_VERSION}"
+  fi
   echo
 fi
 

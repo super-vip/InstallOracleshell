@@ -4,6 +4,7 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ansible" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ansible-oracle" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/bento" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cobbler" vcs="Git" />
   </component>
 </project>
