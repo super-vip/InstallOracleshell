@@ -19,7 +19,7 @@ echo "##########################################################################
 #Oracle Install Mode(RAC/Single/RESTART)
 SOFTWAREDIR=$(pwd)
 DAYTIME=$(date +%Y%m%d)
-RELS=$(more /etc/system-release)
+RELS=$(cat /etc/system-release)
 OS_VER_PRI=$(echo "${RELS#*release}" | awk '{print $1}' | cut -f 1 -d '.')
 memTotal=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 swapTotal=$(grep -i 'swaptotal' /proc/meminfo | awk '{print $2}')
