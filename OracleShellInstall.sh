@@ -878,7 +878,7 @@ InstallRPM() {
       yum install -y nautilus-open-terminal
       yum install -y tigervnc*
     fi
-    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline psmisc ksh nfs-utils --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
+    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline readline-devel psmisc ksh nfs-utils --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
       yum install -y bc \
         binutils \
         compat-libcap1 \
@@ -907,7 +907,8 @@ InstallRPM() {
         expect \
         unzip \
         openssh-clients \
-        readline* \
+        readline \
+        readline-devel \
         psmisc \
         ksh \
         nfs-utils --skip-broken
@@ -918,7 +919,7 @@ InstallRPM() {
       yum groupinstall -y "Server with GUI"
       yum install -y tigervnc*
     fi
-    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline psmisc --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
+    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline readline-devel psmisc --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
       yum install -y bc \
         binutils \
         compat-libcap1 \
@@ -953,7 +954,8 @@ InstallRPM() {
         expect \
         unzip \
         openssh-clients \
-        readline* \
+        readline \
+        readline-devel \
         psmisc --skip-broken
     fi
     ##Solutions: error while loading shared libraries: libnsl.so.1: cannot open shared object
@@ -1038,11 +1040,11 @@ EOF
   # fi
 
   if [ "${OS_VERSION}" = "linux6" ]; then
-    logwrite "RPM Check" "rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline"
+    logwrite "RPM Check" "rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline readline-devel"
   elif [ "${OS_VERSION}" = "linux7" ]; then
-    logwrite "RPM Check" "rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline"
+    logwrite "RPM Check" "rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline readline-devel"
   elif [ "${OS_VERSION}" = "linux8" ]; then
-    logwrite "RPM Check" "rpm -q bc binutils gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline librdmacm libnsl libibverbs policycoreutils-python-utils"
+    logwrite "RPM Check" "rpm -q bc binutils gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline readline-devel librdmacm libnsl libibverbs policycoreutils-python-utils"
   fi
 }
 
