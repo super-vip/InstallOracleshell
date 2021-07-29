@@ -79,11 +79,12 @@ DNSSERVER=N
 DNSNAME=
 DNSIP=
 ISO=Y
+VirtualBox=N
 ###################################################################################
 ##The following is a custom function：
 ####################################################################################
 #Type stty erase '^H' before read
-stty erase '^H'
+#stty erase '^H'
 #Add colors to fonts through variables
 #Define a c1() function here, if you want to change the font color later, you can call it directly
 c1() {
@@ -296,6 +297,9 @@ help() {
   c1 "-gpa,		--GRID RELEASE UPDATE		GRID RELEASE UPDATE(32072711)" green
   c1 "-opa,		--ORACLE RELEASE UPDATE		ORACLE RELEASE UPDATE(32072711)" green
   c1 "-iso,		--ISO                           WHETHER MOUNT ISO OR YUN" green
+  c1 "-installmode,		--OracleInstallMode     Oralce Install mode(single/rac)" green
+  c1 "-dbv,		--DBV                           Database Version(11/12/18/19)" green
+  c1 "-vbox,		--VirtualBox                  Vagrant VirtualBox ASM" green
   exit 0
 }
 
@@ -494,6 +498,10 @@ while [ -n "$1" ]; do #Here by judging whether $1 exists
     ISO=$2
     shift 2
     ;;
+  -vbox | --VirtualBox)
+    VirtualBox=$2
+    shift 2
+    ;;
   -h | --help) help ;; # function help is called
   --)
     shift
@@ -635,6 +643,8 @@ if [ "${nodeNum}" -eq 1 ]; then
         echo -e " -txh ${TuXingHua}\c"
         echo -e " -udev ${UDEV}\c"
         echo -e " -dns ${DNS}\c"
+        echo -e " -iso ${ISO}\c"
+        echo -e " -vbox ${VirtualBox}\c"
       } >"${SOFTWAREDIR}"/racnode2.sh
       ##TimeServer
       if [ -n "${TIMESERVERIP}" ]; then
@@ -869,7 +879,8 @@ InstallRPM() {
       fi
     fi
   fi
-
+  ## For Chinese Linux ENV
+  export LC_ALL=en_US.UTF-8
   if [ "${OS_VERSION}" = "linux6" ]; then
     if [ "${TuXingHua}" = "y" ] || [ "${TuXingHua}" = "Y" ]; then
       #LINUX 6
@@ -878,7 +889,7 @@ InstallRPM() {
       yum install -y nautilus-open-terminal
       yum install -y tigervnc*
     fi
-    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline readline-devel psmisc ksh nfs-utils --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
+    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline readline-devel psmisc ksh nfs-utils --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ] || [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXrender make net-tools smartmontools sysstat e2fsprogs e2fsprogs-libs expect unzip openssh-clients readline readline-devel psmisc ksh nfs-utils --qf '%{name}.%{arch}\n' | grep -E -c "未安装软件包")" -gt 0 ]; then
       yum install -y bc \
         binutils \
         compat-libcap1 \
@@ -919,7 +930,7 @@ InstallRPM() {
       yum groupinstall -y "Server with GUI"
       yum install -y tigervnc*
     fi
-    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline readline-devel psmisc --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ]; then
+    if [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline readline-devel psmisc --qf '%{name}.%{arch}\n' | grep -E -c "not installed")" -gt 0 ] || [ "$(rpm -q bc binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ elfutils-libelf elfutils-libelf-devel glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-devel libxcb libX11 libXau libXi libXtst libXrender libXrender-devel make net-tools nfs-utils smartmontools sysstat e2fsprogs e2fsprogs-libs fontconfig-devel expect unzip openssh-clients readline readline-devel psmisc --qf '%{name}.%{arch}\n' | grep -E -c "未安装软件包")" -gt 0 ]; then
       yum install -y bc \
         binutils \
         compat-libcap1 \
@@ -1614,6 +1625,25 @@ EOF
 
     ##Configure multipath.conf
     if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+      ## VirtualBox
+    if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
+      num1=$((num1 + 1))
+      if [ "${OS_VERSION}" = "linux6" ]; then
+        cat <<EOF >>/etc/multipath.conf
+  multipath {
+  wwid "$(echo $(scsi_id -g -u "${i}") | sed 's/1ATA_//')"
+  alias ocr_${num1}
+  }
+EOF
+      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+        cat <<EOF >>/etc/multipath.conf
+  multipath {
+  wwid "$(echo $(/usr/lib/udev/scsi_id -g -u "${i}") | sed 's/1ATA_//')"
+  alias ocr_${num1}
+  }
+EOF
+      fi
+    else
       num1=$((num1 + 1))
       if [ "${OS_VERSION}" = "linux6" ]; then
         cat <<EOF >>/etc/multipath.conf
@@ -1630,6 +1660,7 @@ EOF
   }
 EOF
       fi
+    fi
     fi
   done
 
@@ -1666,6 +1697,25 @@ EOF
     fi
     ##Configure multipath.conf
     if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+       ## VirtualBox
+    if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
+      num2=$((num2 + 1))
+      if [ "${OS_VERSION}" = "linux6" ]; then
+        cat <<EOF >>/etc/multipath.conf
+  multipath {
+  wwid "$(echo $(scsi_id -g -u "${i}") | sed 's/1ATA_//')"
+  alias data_${num2}
+  }
+EOF
+      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+        cat <<EOF >>/etc/multipath.conf
+  multipath {
+  wwid "$(echo $(/usr/lib/udev/scsi_id -g -u "${i}") | sed 's/1ATA_//')"
+  alias data_${num2}
+  }
+EOF
+      fi
+    else
       num2=$((num2 + 1))
       if [ "${OS_VERSION}" = "linux6" ]; then
         cat <<EOF >>/etc/multipath.conf
@@ -1682,6 +1732,7 @@ EOF
   }
 EOF
       fi
+    fi
     fi
   done
 

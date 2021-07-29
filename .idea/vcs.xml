@@ -3,8 +3,12 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ansible" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ansible-cn" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ansible-oracle" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/bento" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/centos" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cobbler" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/packer-windows" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/vagrant-projects" vcs="Git" />
   </component>
 </project>
