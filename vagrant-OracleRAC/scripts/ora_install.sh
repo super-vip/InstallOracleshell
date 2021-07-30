@@ -24,6 +24,7 @@ cat <<EOF>/soft/rac_install.sh
 -dr $DATA_REDUN `# asm data redundancy`\
 -on OCR `# asm ocr diskgroupname`\
 -dn DATA `# asm data diskgroupname`\
+-gpa $Grid_PATCH \
 -installmode rac \
 -dbv $DB_VERSION \
 -vbox $VIRTUALBOX \

@@ -74,6 +74,8 @@ var_pdb_password    = params['env']['pdb_password']
 var_db_name         = params['env']['db_name']
 var_pdb_name        = params['env']['pdb_name']
 var_cdb             = params['env']['cdb']
+var_grid_patch      = params['env']['grid_patch']
+var_db_patch        = params['env']['db_patch']
 
 # ---------------------------------------------
 # The installation package must ensure the following name！！！Otherwise the installation fails.
@@ -466,6 +468,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           "CDB"                => var_cdb,
           "OCR_REDUN"          => var_asm_ocr_redun,
           "DATA_REDUN"         => var_asm_data_redun,
+          "Grid_PATCH"         => var_grid_patch,
+          "DB_PATCH"           => var_db_patch,
           "DB_VERSION"         => var_db_version,
           "VIRTUALBOX"         => var_virtualbox
       }
