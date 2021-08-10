@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ImageHost" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ansible" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ansible-cn" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ansible-oracle" vcs="Git" />
