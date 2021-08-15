@@ -4,8 +4,8 @@ echo "##Author 	: LuciferLiu"
 echo "##Blog   	: https://luciferliu.blog.csdn.net/"
 echo "##微信公众号	: Lucifer三思而后行"
 echo "##Github        : https://github.com/pc-study/InstallOracleshell"
-echo "##Version	: 1.0"
-echo "##Function   	: Oracle 11g/12c/18c/19c(Single and Rac) install on Linux 6/7/8"
+echo "##Version	: 2.0"
+echo "##Function   	: Oracle 11g/12c/18c/19c/21c(Single and Rac) install on Linux 6/7/8"
 echo "####################################################################################"
 echo "#执行脚本前："
 echo "#    1. 把脚本放入软件目录，例如：/soft"
@@ -562,7 +562,7 @@ if [ "${nodeNum}" -eq 1 ]; then
     echo "${OracleInstallMode}"
   fi
   echo
-  c1 "Please Choose Oracle Database Version(11g/12c/18c/19c) :" blue
+  c1 "Please Choose Oracle Database Version(11g/12c/18c/19c/21c) :" blue
   echo
   if [ -z "${DB_VERSION}" ]; then
     read -r DB_VERSION
@@ -581,12 +581,16 @@ fi
 if [ "${nodeNum}" -eq 1 ]; then
   # [WARNING] [INS-13001] Oracle Database is not supported on this operating system. Installer will not perform prerequisite checks on the system.
   if [ "${OS_VER_PRI}" -eq 6 ]; then
-    if [[ "${DB_VERSION}" == "19c" ]] || [[ "${DB_VERSION}" == "19C" ]] || [[ "${DB_VERSION}" == "19" ]]; then
-      c1 "Sorry, 19C Must Install on Linux 7." red
+    if [[ "${DB_VERSION}" == "19c" ]] || [[ "${DB_VERSION}" == "19C" ]] || [[ "${DB_VERSION}" == "19" ]] || [[ "${DB_VERSION}" == "21c" ]] || [[ "${DB_VERSION}" == "21C" ]] || [[ "${DB_VERSION}" == "21" ]]; then
+      c1 "Sorry, 19C/21C Must Install on Linux 7." red
       c1 "[INS-13001] Oracle Database is not supported on this operating system. Installer will not perform prerequisite checks on the system." blue
       exit 99
     fi
   fi
+  # 21c must choose cdb, otherwise dc create failed
+    if [[ "${DB_VERSION}" == "21c" ]] || [[ "${DB_VERSION}" == "21C" ]] || [[ "${DB_VERSION}" == "21" ]]; then
+      ISCDB=TRUE
+    fi
   if [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "rac" ]; then
     ##IF Configure DNS
     if [ "${DNS}" = "y" ] || [ "${DNS}" = "Y" ]; then
@@ -704,7 +708,9 @@ logwrite "OS Version" "echo ${OS_VERSION}"
 ####################################################################################
 # Choice DB Version
 ####################################################################################
-if [[ "${DB_VERSION}" == "19c" ]] || [[ "${DB_VERSION}" == "19C" ]] || [[ "${DB_VERSION}" == "19" ]]; then
+if [[ "${DB_VERSION}" == "21c" ]] || [[ "${DB_VERSION}" == "21C" ]] || [[ "${DB_VERSION}" == "21" ]]; then
+  DB_VERSION=21.3.0.0
+elif [[ "${DB_VERSION}" == "19c" ]] || [[ "${DB_VERSION}" == "19C" ]] || [[ "${DB_VERSION}" == "19" ]]; then
   DB_VERSION=19.3.0.0
 elif [[ "${DB_VERSION}" == "18c" ]] || [[ "${DB_VERSION}" == "18C" ]] || [[ "${DB_VERSION}" == "18" ]]; then
   DB_VERSION=18.0.0.0
@@ -758,6 +764,9 @@ elif [ "${DB_VERSION}" = "18.0.0.0" ]; then
 elif [ "${DB_VERSION}" = "19.3.0.0" ]; then
   ENV_ORACLE_HOME=$ENV_ORACLE_BASE/product/19.3.0/db
   ENV_GRID_HOME=$ENV_BASE_DIR/19.3.0/grid
+elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+  ENV_ORACLE_HOME=$ENV_ORACLE_BASE/product/21.3.0/db
+  ENV_GRID_HOME=$ENV_BASE_DIR/21.3.0/grid
 else
   c1 "Sorry, Error database version! please check again!" red
   exit
@@ -1497,33 +1506,35 @@ CreateUsersAndDirs() {
   ####################################################################################
   #make directory
   ####################################################################################
-  if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
-    [ ! -d "${ENV_GRID_BASE}" ] && mkdir -p "${ENV_GRID_BASE}"
-    [ ! -d "${ENV_GRID_HOME}" ] && mkdir -p "${ENV_GRID_HOME}"
-    [ ! -d "${ENV_ORACLE_HOME}" ] && mkdir -p "${ENV_ORACLE_HOME}"
-    [ ! -d "${ENV_ORACLE_INVEN}" ] && mkdir -p "${ENV_ORACLE_INVEN}"
-    [ ! -d "${BACKUPDIR}" ] && mkdir -p "${BACKUPDIR}"
-    [ ! -d "${SCRIPTSDIR}" ] && mkdir -p "${SCRIPTSDIR}"
-    chown -R oracle:oinstall "${SCRIPTSDIR}"
-    chown -R oracle:oinstall "${BACKUPDIR}"
-    chown -R grid:oinstall "${ENV_BASE_DIR}"
-    chown -R grid:oinstall "${ENV_GRID_HOME}"
-    chown -R grid:oinstall "${ENV_ORACLE_INVEN}"
-    chown -R oracle:oinstall "${ENV_ORACLE_BASE}"
-    chmod -R 775 "${ENV_BASE_DIR}"
-  else
-    [ ! -d "${ENV_ORACLE_HOME}" ] && mkdir -p "${ENV_ORACLE_HOME}"
-    [ ! -d "${ENV_ORACLE_INVEN}" ] && mkdir -p "${ENV_ORACLE_INVEN}"
-    [ ! -d "${ORADATADIR}" ] && mkdir -p "${ORADATADIR}"
-    [ ! -d "${ARCHIVEDIR}" ] && mkdir -p "${ARCHIVEDIR}"
-    [ ! -d "${BACKUPDIR}" ] && mkdir -p "${BACKUPDIR}"
-    [ ! -d "${SCRIPTSDIR}" ] && mkdir -p "${SCRIPTSDIR}"
-    chown -R oracle:oinstall "${SCRIPTSDIR}"
-    chown -R oracle:oinstall "${ORADATADIR}"
-    chown -R oracle:oinstall "${ARCHIVEDIR}"
-    chown -R oracle:oinstall "${BACKUPDIR}"
-    chown -R oracle:oinstall "${ENV_BASE_DIR}"
-    chmod -R 775 "${ENV_BASE_DIR}"
+  if [ "${ONLYCREATEDB}" = 'N' ]; then
+    if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
+      [ ! -d "${ENV_GRID_BASE}" ] && mkdir -p "${ENV_GRID_BASE}"
+      [ ! -d "${ENV_GRID_HOME}" ] && mkdir -p "${ENV_GRID_HOME}"
+      [ ! -d "${ENV_ORACLE_HOME}" ] && mkdir -p "${ENV_ORACLE_HOME}"
+      [ ! -d "${ENV_ORACLE_INVEN}" ] && mkdir -p "${ENV_ORACLE_INVEN}"
+      [ ! -d "${BACKUPDIR}" ] && mkdir -p "${BACKUPDIR}"
+      [ ! -d "${SCRIPTSDIR}" ] && mkdir -p "${SCRIPTSDIR}"
+      chown -R oracle:oinstall "${SCRIPTSDIR}"
+      chown -R oracle:oinstall "${BACKUPDIR}"
+      chown -R grid:oinstall "${ENV_BASE_DIR}"
+      chown -R grid:oinstall "${ENV_GRID_HOME}"
+      chown -R grid:oinstall "${ENV_ORACLE_INVEN}"
+      chown -R oracle:oinstall "${ENV_ORACLE_BASE}"
+      chmod -R 775 "${ENV_BASE_DIR}"
+    else
+      [ ! -d "${ENV_ORACLE_HOME}" ] && mkdir -p "${ENV_ORACLE_HOME}"
+      [ ! -d "${ENV_ORACLE_INVEN}" ] && mkdir -p "${ENV_ORACLE_INVEN}"
+      [ ! -d "${ORADATADIR}" ] && mkdir -p "${ORADATADIR}"
+      [ ! -d "${ARCHIVEDIR}" ] && mkdir -p "${ARCHIVEDIR}"
+      [ ! -d "${BACKUPDIR}" ] && mkdir -p "${BACKUPDIR}"
+      [ ! -d "${SCRIPTSDIR}" ] && mkdir -p "${SCRIPTSDIR}"
+      chown -R oracle:oinstall "${SCRIPTSDIR}"
+      chown -R oracle:oinstall "${ORADATADIR}"
+      chown -R oracle:oinstall "${ARCHIVEDIR}"
+      chown -R oracle:oinstall "${BACKUPDIR}"
+      chown -R oracle:oinstall "${ENV_BASE_DIR}"
+      chmod -R 775 "${ENV_BASE_DIR}"
+    fi
   fi
 
   if [ "${DB_VERSION}" = "12.2.0.1" ]; then
@@ -1581,7 +1592,7 @@ EOF
 UDEV_ASMDISK() {
   if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
     # Install multipath
-    yum install -y device-mapper*
+    yum install -y device-mapper-multipath
     mpathconf --enable --with_multipathd y
 
     # Configure multipath
@@ -2007,7 +2018,11 @@ EOF
   elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
     if [ "$(grep -E -c "transparent_hugepage=never numa=off" /etc/default/grub)" -eq 0 ]; then
       [ ! -f /etc/default/grub."${DAYTIME}" ] && cp /etc/default/grub /etc/default/grub."${DAYTIME}"
-      sed -i 's/quiet/quiet transparent_hugepage=never numa=off/' /etc/default/grub
+      if [ "${DB_VERSION}" = "21.3.0.0" ]; then
+        sed -i 's/quiet/quiet transparent_hugepage=never numa=off clocksource=tsc tsc=reliable/' /etc/default/grub
+      else
+        sed -i 's/quiet/quiet transparent_hugepage=never numa=off/' /etc/default/grub
+      fi
       grub2-mkconfig -o /boot/grub2/grub.cfg
     fi
 
@@ -2112,6 +2127,19 @@ EOF
   fi
 
   logwrite "NOZEROCONF" "cat /etc/sysconfig/network"
+
+  ####################################################################################
+  # Edit RemoveIPC=no
+  ####################################################################################
+  if [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+    if [ "$(grep -E -c "#RemoveIPC=no" /etc/systemd/logind.conf)" -gt 0 ]; then
+      sed -i 's/#RemoveIPC=no/RemoveIPC=no/g' /etc/systemd/logind.conf
+      systemctl daemon-reload
+      systemctl restart systemd-logind
+    fi
+  fi
+
+  logwrite "RemoveIPC" "cat /etc/systemd/logind.conf | grep -v \"^\$\"|grep -v \"^#\""
 
   ####################################################################################
   # Edit limits.conf
@@ -2423,6 +2451,22 @@ UnzipGridSoft() {
       c1 "LINUX.X64_193000_grid_home.zip" blue
       exit 99
     fi
+  elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+    if [ -f "${ENV_GRID_HOME}" ]; then
+      if [ "$(find "${ENV_GRID_HOME}" -mindepth 1 | wc -l)" -gt 0 ]; then
+        cd ~ || return
+        rm -rf "${ENV_GRID_HOME}"
+        rm -rf "${ENV_GRID_HOME}/".*
+      fi
+    fi
+    if unzip -o "${SOFTWAREDIR}"/LINUX.X64_213000_grid_home.zip -d "${ENV_GRID_HOME}"; then
+      ##rm -rf "${SOFTWAREDIR}"/LINUX.X64_213000_grid_home.zip
+      chown -R grid:oinstall "${ENV_GRID_HOME}"
+    else
+      c1 "Make sure the grid installation package is in the ${SOFTWAREDIR} directory:" red
+      c1 "LINUX.X64_213000_grid_home.zip" blue
+      exit 99
+    fi
   else
     c1 "Error grid version! please check again!" red
     exit
@@ -2444,7 +2488,7 @@ UnzipGridSoft() {
       fi
     fi
 
-  elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [ "${DB_VERSION}" = "19.3.0.0" ]; then
+  elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [ "${DB_VERSION}" = "19.3.0.0" ] || [ "${DB_VERSION}" = "21.3.0.0" ]; then
     if [ "$(rpm -qa | grep -c cvuqdisk)" -eq 0 ]; then
       if [ -f "${ENV_GRID_HOME}"/cv/rpm/cvuqdisk-1.0.10-1.rpm ]; then
         rpm -ivh "${ENV_GRID_HOME}"/cv/rpm/cvuqdisk-1.0.10-1.rpm
@@ -2469,23 +2513,11 @@ UnzipGridSoft() {
 # runcluvfy.sh
 ####################################################################################
 Runcluvfy() {
-  # if [[ "${DB_VERSION}" = "11.2.0.4" ]]; then
-  #     cvufix=CVU_11.2.0.4.0_grid
-  # elif [[ "${DB_VERSION}" = "12.2.0.1" ]]; then
-  #     cvufix=CVU_12.2.0.1.0_grid
-  # elif [[ "${DB_VERSION}" = "18.0.0.0" ]]; then
-  #     cvufix=CVU_18.0.0.0.0_grid
-  # elif [[ "${DB_VERSION}" = "19.3.0.0" ]]; then
-  #     cvufix=CVU_19.0.0.0.0_grid
-  # fi
-
   if [[ "${DB_VERSION}" == "11.2.0.4" ]]; then
     if [ -f "${SOFTWAREDIR}"/grid/runcluvfy.sh ]; then
       su - grid -c "${SOFTWAREDIR}/grid/runcluvfy.sh stage -pre crsinst -n $RAC1HOSTNAME,$RAC2HOSTNAME -fixup -verbose" | tee "${SOFTWAREDIR}"/runcluvfy.out
-      # /tmp/$cvufix/runfixup.sh
-      # ssh "$RAC2HOSTNAME" /tmp/$cvufix/runfixup.sh
     fi
-  elif [[ "${DB_VERSION}" == "12.2.0.1" ]] || [[ "${DB_VERSION}" == "18.0.0.0" ]]; then
+    elif [[ "${DB_VERSION}" == "12.2.0.1" ]] || [[ "${DB_VERSION}" == "18.0.0.0" ]]; then
     if [ -f "${ENV_GRID_HOME}"/runcluvfy.sh ]; then
       # /tmp/$cvufix/runfixup.sh
       # if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
@@ -2501,7 +2533,7 @@ Runcluvfy() {
 expect "$USER_PROMPT"
 EOF
     fi
-  elif [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
+  elif [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
     if [ -f "${ENV_GRID_HOME}"/runcluvfy.sh ]; then
       ##PRVG-11250 : The check "RPM Package Manager database" was not performed because
       ##Cluvfy Fail with PRVG-11250 The Check “RPM Package Manager Database” Was Not Performed (Doc ID 2548970.1)
@@ -2521,7 +2553,6 @@ expect "$USER_PROMPT"
 EOF
 
     fi
-
   fi
 
 }
@@ -2551,6 +2582,12 @@ InstallGridsoftware() {
       if ! su - grid -c "unzip -o ${SOFTWAREDIR}/p6880880_190000_Linux-x86-64.zip -d ${ENV_GRID_HOME}"; then
         c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
         c1 "p6880880_190000_Linux-x86-64.zip" blue
+        exit 92
+      fi
+    elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+      if ! su - grid -c "unzip -o ${SOFTWAREDIR}/p6880880_210000_Linux-x86-64.zip -d ${ENV_GRID_HOME}"; then
+        c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
+        c1 "p6880880_210000_Linux-x86-64.zip" blue
         exit 92
       fi
     fi
@@ -2897,6 +2934,92 @@ EOF
 oracle.install.crs.config.networkInterfaceList=$RACPUBLICFCNAME:${RAC1PUBLICIP%.*}.0:1,$RACPRIVFCNAME:${RAC1PRIVIP%.*}.0:5
 EOF
       fi
+    elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+      cat <<EOF >"${SOFTWAREDIR}"/grid.rsp
+oracle.install.responseFileVersion=/oracle/install/rspfmt_crsinstall_response_schema_v21.0.0
+INVENTORY_LOCATION=${ENV_ORACLE_INVEN}
+oracle.install.option=CRS_CONFIG
+ORACLE_BASE=${ENV_GRID_BASE}
+oracle.install.asm.OSDBA=asmdba
+oracle.install.asm.OSOPER=asmoper
+oracle.install.asm.OSASM=asmadmin
+oracle.install.crs.config.scanType=LOCAL_SCAN
+oracle.install.crs.config.SCANClientDataFile=
+oracle.install.crs.config.gpnp.scanName=${RACSCANNAME}
+oracle.install.crs.config.gpnp.scanPort=1521
+oracle.install.crs.config.ClusterConfiguration=STANDALONE
+oracle.install.crs.config.configureAsExtendedCluster=false
+oracle.install.crs.config.clusterName=${CLUSTERNAME}
+oracle.install.crs.config.gpnp.configureGNS=false
+oracle.install.crs.config.autoConfigureClusterNodeVIP=false
+oracle.install.crs.config.gpnp.gnsOption=
+oracle.install.crs.config.gpnp.gnsClientDataFile=
+oracle.install.crs.config.gpnp.gnsSubDomain=
+oracle.install.crs.config.gpnp.gnsVIPAddress=
+oracle.install.crs.config.sites=
+oracle.install.crs.config.storageOption=FLEX_ASM_STORAGE
+oracle.install.crs.exascale.vault.name=
+oracle.install.crs.config.sharedFileSystemStorage.votingDiskLocations=
+oracle.install.crs.config.sharedFileSystemStorage.ocrLocations=
+oracle.install.asm.ClientDataFile=
+oracle.install.crs.config.useIPMI=false
+oracle.install.crs.config.ipmi.bmcBinpath=
+oracle.install.crs.config.ipmi.bmcUsername=
+oracle.install.crs.config.ipmi.bmcPassword=
+oracle.install.asm.SYSASMPassword=${GRIDPASSWD}
+oracle.install.asm.diskGroup.name=${ASMOCRNAME}
+oracle.install.asm.diskGroup.redundancy=${OCRREDUN}
+oracle.install.asm.diskGroup.AUSize=4
+oracle.install.asm.diskGroup.FailureGroups=
+oracle.install.asm.diskGroup.disksWithFailureGroupNames=${OCRFailureDISK}
+oracle.install.asm.diskGroup.disks=${OCRDISK}
+oracle.install.asm.diskGroup.quorumFailureGroupNames=
+oracle.install.asm.diskGroup.diskDiscoveryString=/dev/asm*
+oracle.install.asm.monitorPassword=${GRIDPASSWD}
+oracle.install.asm.configureAFD=false
+oracle.install.crs.configureRHPS=false
+oracle.install.crs.config.ignoreDownNodes=false
+oracle.install.crs.configureGIMR=false
+oracle.install.crs.configureRemoteGIMR=false
+oracle.install.crs.RemoteGIMRCredFile=
+oracle.install.asm.configureGIMRDataDG=false
+oracle.install.asm.gimrDG.name=
+oracle.install.asm.gimrDG.redundancy=
+oracle.install.asm.gimrDG.AUSize=1
+oracle.install.asm.gimrDG.FailureGroups=
+oracle.install.asm.gimrDG.disksWithFailureGroupNames=
+oracle.install.asm.gimrDG.disks=
+oracle.install.asm.gimrDG.quorumFailureGroupNames=
+oracle.install.config.managementOption=NONE
+oracle.install.config.omsHost=
+oracle.install.config.omsPort=0
+oracle.install.config.emAdminUser=
+oracle.install.config.emAdminPassword=
+oracle.install.crs.rootconfig.executeRootScript=false
+oracle.install.crs.rootconfig.configMethod=
+oracle.install.crs.rootconfig.sudoPath=
+oracle.install.crs.rootconfig.sudoUserName=
+oracle.install.crs.config.batchinfo=
+oracle.install.crs.deleteNode.nodes=
+EOF
+      if [ "${DNS}" = "y" ] || [ "${DNS}" = "Y" ]; then
+        cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
+oracle.install.crs.config.clusterNodes=${RAC1HOSTNAME}.${DNSNAME}:${RAC1HOSTNAME}-vip.${DNSNAME},${RAC2HOSTNAME}.${DNSNAME}:${RAC2HOSTNAME}-vip.${DNSNAME}
+EOF
+      else
+        cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
+oracle.install.crs.config.clusterNodes=${RAC1HOSTNAME}:${RAC1HOSTNAME}-vip,${RAC2HOSTNAME}:${RAC2HOSTNAME}-vip
+EOF
+      fi
+      if [ -n "${RAC1PRIVIP1}" ] && [ -n "${RAC2PRIVIP1}" ] && [ -n "${RACPRIVFCNAME1}" ]; then
+        cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
+oracle.install.crs.config.networkInterfaceList=$RACPUBLICFCNAME:${RAC1PUBLICIP%.*}.0:1,$RACPRIVFCNAME:${RAC1PRIVIP%.*}.0:5,$RACPRIVFCNAME1:${RAC1PRIVIP1%.*}.0:5
+EOF
+      else
+        cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
+oracle.install.crs.config.networkInterfaceList=$RACPUBLICFCNAME:${RAC1PUBLICIP%.*}.0:1,$RACPRIVFCNAME:${RAC1PRIVIP%.*}.0:5
+EOF
+      fi
     fi
   elif [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
     if [ ${DB_VERSION} = 11.2.0.4 ]; then
@@ -3150,6 +3273,74 @@ oracle.install.crs.app.applicationAddress=
 oracle.install.crs.deleteNode.nodes=
 EOF
     fi
+    elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+      cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
+oracle.install.responseFileVersion=/oracle/install/rspfmt_crsinstall_response_schema_v21.0.0
+INVENTORY_LOCATION=${ENV_ORACLE_INVEN}
+oracle.install.option=HA_CONFIG
+ORACLE_BASE=${ENV_GRID_BASE}
+oracle.install.asm.OSDBA=asmdba
+oracle.install.asm.OSOPER=asmoper
+oracle.install.asm.OSASM=asmadmin
+oracle.install.crs.config.scanType=LOCAL_SCAN
+oracle.install.crs.config.SCANClientDataFile=
+oracle.install.crs.config.gpnp.scanName=
+oracle.install.crs.config.gpnp.scanPort=
+oracle.install.crs.config.ClusterConfiguration=STANDALONE
+oracle.install.crs.config.configureAsExtendedCluster=false
+oracle.install.crs.config.clusterName=
+oracle.install.crs.config.gpnp.configureGNS=false
+oracle.install.crs.config.autoConfigureClusterNodeVIP=false
+oracle.install.crs.config.gpnp.gnsOption=CREATE_NEW_GNS
+oracle.install.crs.config.gpnp.gnsClientDataFile=
+oracle.install.crs.config.gpnp.gnsSubDomain=
+oracle.install.crs.config.gpnp.gnsVIPAddress=
+oracle.install.crs.config.sites=
+oracle.install.crs.config.storageOption=
+oracle.install.crs.exascale.vault.name=
+oracle.install.crs.config.sharedFileSystemStorage.votingDiskLocations=
+oracle.install.crs.config.sharedFileSystemStorage.ocrLocations=
+oracle.install.asm.ClientDataFile=
+oracle.install.crs.config.useIPMI=false
+oracle.install.crs.config.ipmi.bmcBinpath=
+oracle.install.crs.config.ipmi.bmcUsername=
+oracle.install.crs.config.ipmi.bmcPassword=
+oracle.install.asm.SYSASMPassword=${GRIDPASSWD}
+oracle.install.asm.diskGroup.name=${ASMOCRNAME}
+oracle.install.asm.diskGroup.redundancy=${OCRREDUN}
+oracle.install.asm.diskGroup.AUSize=4
+oracle.install.asm.diskGroup.FailureGroups=
+oracle.install.asm.diskGroup.disksWithFailureGroupNames=${OCRFailureDISK}
+oracle.install.asm.diskGroup.disks=${OCRDISK}
+oracle.install.asm.diskGroup.quorumFailureGroupNames=
+oracle.install.asm.diskGroup.diskDiscoveryString=/dev/asm*
+oracle.install.asm.monitorPassword=${GRIDPASSWD}
+oracle.install.asm.configureAFD=false
+oracle.install.crs.configureRHPS=false
+oracle.install.crs.config.ignoreDownNodes=false
+oracle.install.crs.configureGIMR=false
+oracle.install.crs.configureRemoteGIMR=false
+oracle.install.crs.RemoteGIMRCredFile=
+oracle.install.asm.configureGIMRDataDG=false
+oracle.install.asm.gimrDG.name=
+oracle.install.asm.gimrDG.redundancy=
+oracle.install.asm.gimrDG.AUSize=1
+oracle.install.asm.gimrDG.FailureGroups=
+oracle.install.asm.gimrDG.disksWithFailureGroupNames=
+oracle.install.asm.gimrDG.disks=
+oracle.install.asm.gimrDG.quorumFailureGroupNames=
+oracle.install.config.managementOption=NONE
+oracle.install.config.omsHost=
+oracle.install.config.omsPort=0
+oracle.install.config.emAdminUser=
+oracle.install.config.emAdminPassword=
+oracle.install.crs.rootconfig.executeRootScript=false
+oracle.install.crs.rootconfig.configMethod=
+oracle.install.crs.rootconfig.sudoPath=
+oracle.install.crs.rootconfig.sudoUserName=
+oracle.install.crs.config.batchinfo=
+oracle.install.crs.deleteNode.nodes=
+EOF
   fi
 
   logwrite "${SOFTWAREDIR}/grid.rsp" "cat ${SOFTWAREDIR}/grid.rsp"
@@ -3162,14 +3353,14 @@ EOF
       c1 "Sorry, Grid Install Failed." red
       exit 99
     fi
-  elif [[ "${DB_VERSION}" == "12.2.0.1" ]] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
+  elif [[ "${DB_VERSION}" == "12.2.0.1" ]] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
     if [ -n "${GPATCH}" ]; then
       if [[ "${DB_VERSION}" == "12.2.0.1" ]]; then
         if ! su - grid -c "${ENV_GRID_HOME}/gridSetup.sh -silent -force -responseFile ${SOFTWAREDIR}/grid.rsp -ignorePrereqFailure -waitForCompletion -skipPrereqs -applyPSU ${SOFTWAREDIR}/${GPATCH}"; then
           c1 "Sorry, Grid Install Failed." red
           exit 99
         fi
-      elif [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
+      elif [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
         if ! su - grid -c "${ENV_GRID_HOME}/gridSetup.sh -silent -force -responseFile ${SOFTWAREDIR}/grid.rsp -waitForCompletion -skipPrereqs -applyRU ${SOFTWAREDIR}/${GPATCH}"; then
           c1 "Sorry, Grid Install Failed." red
           exit 99
@@ -3184,51 +3375,6 @@ EOF
   fi
 
   logwrite "Grid OPatch Version" "su - grid -c \"opatch version\""
-
-  ## Oracle Grid/RAC 11.2.0.4 on Oracle Linux 7
-  ## Oracle High Availability Service has timed out waiting for init.ohasd to be started.
-  #     if [ "${DB_VERSION}" = "11.2.0.4" ] && [ "${OS_VERSION}" = "linux7" ]; then
-  #         #create script ohas.service
-  #         if [ ! -d /usr/lib/systemd/system ]; then
-  #             mkdir -p /usr/lib/systemd/system
-  #         fi
-  #         cat <<EOF >/usr/lib/systemd/system/ohas.service
-  # [Unit]
-  # Description=Oracle High Availability Services
-  # After=syslog.target
-  # [Service]
-  # ExecStart=/etc/init.d/init.ohasd run >/dev/null 2>&1 Type=simple
-  # Restart=always
-  # [Install]
-  # WantedBy=multi-user.target
-  # EOF
-
-  #         ##edit scripts start_ohas.sh
-  #         cat <<EOF >"${SOFTWAREDIR}"/start_ohas.sh
-  # #/bin/bash
-  # while true; do
-  # if [ -f /etc/init.d/init.ohasd ]; then
-  # systemctl start ohas.service
-  # systemctl status ohas.service
-  # break
-  # fi
-  # done
-  # EOF
-  #         chmod +x "${SOFTWAREDIR}"/start_ohas.sh
-  #         #start service
-  #         systemctl daemon-reload
-  #         systemctl enable ohas.service
-
-  #         ##RAC scp  to  node 2
-  #         if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
-  #             ssh "$RAC2HOSTNAME" "mkdir -p /usr/lib/systemd/system"
-  #             scp /usr/lib/systemd/system/ohas.service "$RAC2HOSTNAME":/usr/lib/systemd/system
-  #             scp "${SOFTWAREDIR}"/start_ohas.sh "$RAC2HOSTNAME":"${SOFTWAREDIR}"
-  #             ssh "$RAC2HOSTNAME" "chmod +x ""${SOFTWAREDIR}""/start_ohas.sh"
-  #             ssh "$RAC2HOSTNAME" "systemctl daemon-reload"
-  #             ssh "$RAC2HOSTNAME" "systemctl enable ohas.service"
-  #         fi
-  #     fi
 
   ##Patch 18370031
   if [ "${DB_VERSION}" = "11.2.0.4" ] && [ "${OS_VERSION}" = "linux7" ]; then
@@ -3300,12 +3446,6 @@ EOF
   if [ ! -f /home/grid/cfgrsp.propertiesc ]; then
     if [[ "${DB_VERSION}" == "11.2.0.4" ]]; then
       cat <<EOF >>/home/grid/cfgrsp.properties
-
-      #         elif [ "${DB_VERSION}" = "18.0.0.0" ] || [ "${DB_VERSION}" = "19.3.0.0" ]; then
-      #             cat <<EOF >>/home/grid/cfgrsp.rsp
-      # oracle.install.asm.SYSASMPassword=${GRIDPASSWD}
-      # oracle.install.asm.monitorPassword=${GRIDPASSWD}
-      # EOF
 oracle.assistants.asm|S_ASMPASSWORD=${GRIDPASSWD}
 oracle.assistants.asm|S_ASMMONITORPASSWORD=${GRIDPASSWD}
 EOF
@@ -3472,6 +3612,19 @@ UnzipDBSoft() {
       c1 "LINUX.X64_193000_db_home.zip" blue
       exit 99
     fi
+  elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+    if [ "$(find "${ENV_ORACLE_HOME}" -mindepth 1 | wc -l)" -gt 0 ]; then
+      cd ~ || return
+      rm -rf "${ENV_ORACLE_HOME}"
+    fi
+    if unzip -o "${SOFTWAREDIR}"/LINUX.X64_213000_db_home.zip -d "${ENV_ORACLE_HOME}"; then
+      ##rm -rf "${SOFTWAREDIR}"/LINUX.X64_213000_db_home.zip
+      chown -R oracle:oinstall "${ENV_ORACLE_HOME}"
+    else
+      c1 "Make sure the database installation package is in the ${SOFTWAREDIR} directory:" red
+      c1 "LINUX.X64_213000_db_home.zip" blue
+      exit 99
+    fi
   else
     c1 "Error database version! please check again!" red
     exit
@@ -3505,6 +3658,16 @@ InstallDBsoftware() {
       else
         c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
         c1 "p6880880_190000_Linux-x86-64.zip" blue
+        exit 92
+      fi
+    ## 21C
+    elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+      if su - oracle -c "unzip -o ${SOFTWAREDIR}/p6880880_210000_Linux-x86-64.zip -d ${ENV_ORACLE_HOME}"; then
+        ##rm -rf "${SOFTWAREDIR}"/p6880880_210000_Linux-x86-64.zip
+        echo "unzip p6880880 successful"
+      else
+        c1 "Make sure the Patch 6880880 is in the ${SOFTWAREDIR} directory:" red
+        c1 "p6880880_210000_Linux-x86-64.zip" blue
         exit 92
       fi
     fi
@@ -3675,6 +3838,43 @@ oracle.install.db.rootconfig.executeRootScript=false
 oracle.install.db.rootconfig.configMethod=
 EOF
     fi
+  elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+    if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
+      cat <<EOF >>"${SOFTWAREDIR}"/db.rsp
+oracle.install.responseFileVersion=/oracle/install/rspfmt_dbinstall_response_schema_v21.0.0
+oracle.install.option=INSTALL_DB_SWONLY
+UNIX_GROUP_NAME=oinstall
+INVENTORY_LOCATION=${ENV_ORACLE_INVEN}
+ORACLE_BASE=${ENV_ORACLE_BASE}
+oracle.install.db.InstallEdition=EE
+oracle.install.db.OSDBA_GROUP=dba
+oracle.install.db.OSOPER_GROUP=oper
+oracle.install.db.OSBACKUPDBA_GROUP=backupdba
+oracle.install.db.OSDGDBA_GROUP=dgdba
+oracle.install.db.OSKMDBA_GROUP=kmdba
+oracle.install.db.OSRACDBA_GROUP=racdba
+oracle.install.db.CLUSTER_NODES=${RAC1HOSTNAME},${RAC2HOSTNAME}
+oracle.install.db.rootconfig.executeRootScript=false
+oracle.install.db.rootconfig.configMethod=
+EOF
+    else
+      cat <<EOF >>"${SOFTWAREDIR}"/db.rsp
+oracle.install.responseFileVersion=/oracle/install/rspfmt_dbinstall_response_schema_v21.0.0
+oracle.install.option=INSTALL_DB_SWONLY
+UNIX_GROUP_NAME=oinstall
+INVENTORY_LOCATION=${ENV_ORACLE_INVEN}
+ORACLE_BASE=${ENV_ORACLE_BASE}
+oracle.install.db.InstallEdition=EE
+oracle.install.db.OSDBA_GROUP=dba
+oracle.install.db.OSOPER_GROUP=oper
+oracle.install.db.OSBACKUPDBA_GROUP=backupdba
+oracle.install.db.OSDGDBA_GROUP=dgdba
+oracle.install.db.OSKMDBA_GROUP=kmdba
+oracle.install.db.OSRACDBA_GROUP=racdba
+oracle.install.db.rootconfig.executeRootScript=false
+oracle.install.db.rootconfig.configMethod=
+EOF
+    fi
   fi
 
   logwrite "${SOFTWAREDIR}/db.rsp" "cat ${SOFTWAREDIR}/db.rsp"
@@ -3694,8 +3894,8 @@ EOF
       c1 "Sorry, ORALCE Software Install Failed." red
       exit 99
     fi
-  ## 18C AND 19C -applyRU
-  elif [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
+  ## 18C, 19C, 21C -applyRU
+  elif [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
     if [ -n "${GPATCH}" ]; then
       ##RAC OR RESTART
       su - oracle -c "${ENV_ORACLE_HOME}/runInstaller -silent -force -responseFile ${SOFTWAREDIR}/db.rsp -ignorePrereq -waitForCompletion -applyRU ${SOFTWAREDIR}/${GPATCH}"
@@ -3852,6 +4052,8 @@ createNetca() {
     RESPONSEFILE_VERSION=18.0
   elif [ "${DB_VERSION}" = "19.3.0.0" ]; then
     RESPONSEFILE_VERSION=19.3
+  elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+    RESPONSEFILE_VERSION=21.3
   fi
 
   cat <<EOF >>"${SOFTWAREDIR}"/netca.rsp
@@ -3885,18 +4087,18 @@ EOF
 createDB() {
   if [ "${DB_VERSION}" = "11.2.0.4" ]; then
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM  -sampleSchema true -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     elif [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM  -sampleSchema true -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     else
       su - oracle -c "lsnrctl start"
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbname ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS -datafileDestination ${ORADATADIR} -sampleSchema true -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbname ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS -datafileDestination ${ORADATADIR} -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -3905,10 +4107,10 @@ createDB() {
       cd ~ || return
       rm -rf "${SOFTWAREDIR:?}"/database
     fi
-  elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
+  elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
       ASMDATANAME="+${ASMDATANAME}"
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType RAC -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType RAC -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -3924,13 +4126,13 @@ createDB() {
         # usermod -a -G racdba grid
         # su - oracle -c "relink all"
       fi
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType SINGLE -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType SINGLE -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     else
       su - oracle -c "lsnrctl start"
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS  -databaseConfigType SINGLE -datafileDestination ${ORADATADIR} -enableArchive true -archiveLogDest ${ARCHIVEDIR} -sampleSchema true -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS  -databaseConfigType SINGLE -datafileDestination ${ORADATADIR} -enableArchive true -archiveLogDest ${ARCHIVEDIR} -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -3949,7 +4151,7 @@ DBParaSet() {
     rm -rf /home/oracle/*.sql
   fi
   if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
-    if [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
+    if [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
       cat <<EOF >/home/oracle/oracleParaset.sql
 --set db_create_file_dest
 ALTER SYSTEM SET DB_CREATE_FILE_DEST='${ASMDATANAME}';
@@ -4037,7 +4239,7 @@ EOF
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
       if [ "${DB_VERSION}" = "11.2.0.4" ]; then
         "${ENV_GRID_HOME}"/bin/crsctl modify resource "ora.${ORACLE_SID}.db" -attr "AUTO_START=always"
-      elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]]; then
+      elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
         "${ENV_GRID_HOME}"/bin/crsctl modify resource "ora.${ORACLE_SID}.db" -attr "AUTO_START=always" -unsupported
       fi
     else
@@ -4216,7 +4418,7 @@ EOF
   ####################################################################################
   # Sqlnet.ora Configure lower Oracle client to connect
   ####################################################################################
-  if [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "12.2.0.1" ]]; then
+  if [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "12.2.0.1" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
     if [ -f "${ENV_ORACLE_HOME}"/network/admin/sqlnet.ora ] && [ "$(grep -E -c "#OracleBegin" "${ENV_ORACLE_HOME}"/network/admin/sqlnet.ora)" -eq 0 ]; then
       [ ! -f "${ENV_ORACLE_HOME}"/network/admin/sqlnet.ora."${DAYTIME}" ] && cp "${ENV_ORACLE_HOME}"/network/admin/sqlnet.ora "${ENV_ORACLE_HOME}"/network/admin/sqlnet.ora."${DAYTIME}"
       su - oracle -c "cat <<EOF >>${ENV_ORACLE_HOME}/network/admin/sqlnet.ora
