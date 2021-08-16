@@ -588,9 +588,9 @@ if [ "${nodeNum}" -eq 1 ]; then
     fi
   fi
   # 21c must choose cdb, otherwise dc create failed
-    if [[ "${DB_VERSION}" == "21c" ]] || [[ "${DB_VERSION}" == "21C" ]] || [[ "${DB_VERSION}" == "21" ]]; then
-      ISCDB=TRUE
-    fi
+  if [[ "${DB_VERSION}" == "21c" ]] || [[ "${DB_VERSION}" == "21C" ]] || [[ "${DB_VERSION}" == "21" ]]; then
+    ISCDB=TRUE
+  fi
   if [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "rac" ]; then
     ##IF Configure DNS
     if [ "${DNS}" = "y" ] || [ "${DNS}" = "Y" ]; then
@@ -1637,41 +1637,41 @@ EOF
     ##Configure multipath.conf
     if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
       ## VirtualBox
-    if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
-      num1=$((num1 + 1))
-      if [ "${OS_VERSION}" = "linux6" ]; then
-        cat <<EOF >>/etc/multipath.conf
+      if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
+        num1=$((num1 + 1))
+        if [ "${OS_VERSION}" = "linux6" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias ocr_${num1}
   }
 EOF
-      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-        cat <<EOF >>/etc/multipath.conf
+        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(/usr/lib/udev/scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias ocr_${num1}
   }
 EOF
-      fi
-    else
-      num1=$((num1 + 1))
-      if [ "${OS_VERSION}" = "linux6" ]; then
-        cat <<EOF >>/etc/multipath.conf
+        fi
+      else
+        num1=$((num1 + 1))
+        if [ "${OS_VERSION}" = "linux6" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(scsi_id -g -u "${i}")"
   alias ocr_${num1}
   }
 EOF
-      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-        cat <<EOF >>/etc/multipath.conf
+        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(/usr/lib/udev/scsi_id -g -u "${i}")"
   alias ocr_${num1}
   }
 EOF
+        fi
       fi
-    fi
     fi
   done
 
@@ -1708,42 +1708,42 @@ EOF
     fi
     ##Configure multipath.conf
     if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
-       ## VirtualBox
-    if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
-      num2=$((num2 + 1))
-      if [ "${OS_VERSION}" = "linux6" ]; then
-        cat <<EOF >>/etc/multipath.conf
+      ## VirtualBox
+      if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
+        num2=$((num2 + 1))
+        if [ "${OS_VERSION}" = "linux6" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias data_${num2}
   }
 EOF
-      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-        cat <<EOF >>/etc/multipath.conf
+        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(/usr/lib/udev/scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias data_${num2}
   }
 EOF
-      fi
-    else
-      num2=$((num2 + 1))
-      if [ "${OS_VERSION}" = "linux6" ]; then
-        cat <<EOF >>/etc/multipath.conf
+        fi
+      else
+        num2=$((num2 + 1))
+        if [ "${OS_VERSION}" = "linux6" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(scsi_id -g -u "${i}")"
   alias data_${num2}
   }
 EOF
-      elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-        cat <<EOF >>/etc/multipath.conf
+        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+          cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(/usr/lib/udev/scsi_id -g -u "${i}")"
   alias data_${num2}
   }
 EOF
+        fi
       fi
-    fi
     fi
   done
 
@@ -2517,7 +2517,7 @@ Runcluvfy() {
     if [ -f "${SOFTWAREDIR}"/grid/runcluvfy.sh ]; then
       su - grid -c "${SOFTWAREDIR}/grid/runcluvfy.sh stage -pre crsinst -n $RAC1HOSTNAME,$RAC2HOSTNAME -fixup -verbose" | tee "${SOFTWAREDIR}"/runcluvfy.out
     fi
-    elif [[ "${DB_VERSION}" == "12.2.0.1" ]] || [[ "${DB_VERSION}" == "18.0.0.0" ]]; then
+  elif [[ "${DB_VERSION}" == "12.2.0.1" ]] || [[ "${DB_VERSION}" == "18.0.0.0" ]]; then
     if [ -f "${ENV_GRID_HOME}"/runcluvfy.sh ]; then
       # /tmp/$cvufix/runfixup.sh
       # if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
@@ -3273,8 +3273,8 @@ oracle.install.crs.app.applicationAddress=
 oracle.install.crs.deleteNode.nodes=
 EOF
     fi
-    elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
-      cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
+  elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+    cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
 oracle.install.responseFileVersion=/oracle/install/rspfmt_crsinstall_response_schema_v21.0.0
 INVENTORY_LOCATION=${ENV_ORACLE_INVEN}
 oracle.install.option=HA_CONFIG
