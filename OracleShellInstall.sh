@@ -1542,18 +1542,6 @@ CreateUsersAndDirs() {
     echo "inventory_loc=${ENV_ORACLE_INVEN}" >>/etc/oraInst.loc
     echo "inst_group=oinstall" >>/etc/oraInst.loc
   fi
-
-  ## Judge DISK SPACE
-  if [ "${OS_VERSION}" = "linux6" ]; then
-    BASEDIR_SPACE=$(df "${ENV_BASE_DIR}" | tail -n 1 | awk '{printf $3}')
-  elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-    BASEDIR_SPACE=$(df "${ENV_BASE_DIR}" | tail -n 1 | awk '{printf $4}')
-  fi
-  BASEDIR_SPACE=$((BASEDIR_SPACE / 1024 / 1024))
-  if [ "${BASEDIR_SPACE}" -lt 50 ]; then
-    c1 "${ENV_BASE_DIR} Disk Space ${BASEDIR_SPACE}G is not enough (50G), Install Maybe Failed." red
-    sleep 3
-  fi
 }
 
 ####################################################################################

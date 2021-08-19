@@ -50,7 +50,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: <<-SHELL
     echo oracle | passwd --stdin root
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-    systemctl restart sshd
   SHELL
 
   config.vm.provision "shell", path: "scripts/setup.sh", env: {

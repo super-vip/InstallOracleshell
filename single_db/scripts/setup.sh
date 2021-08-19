@@ -1,4 +1,11 @@
 mkdir /soft
+RELS=$(cat /etc/system-release)
+OS_VER_PRI=$(echo "${RELS#*release}" | awk '{print $1}' | cut -f 1 -d '.')
+if [ "${OS_VER_PRI}" -eq 6 ]; then
+    service sshd restart
+elif [ "${OS_VER_PRI}" -eq 7 ]; then
+    systemctl restart sshd
+fi
 cp /vagrant/OracleShellInstall.sh /soft
 cp /vagrant/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm /soft
 cp /vagrant/rlwrap-0.42.tar.gz /soft
