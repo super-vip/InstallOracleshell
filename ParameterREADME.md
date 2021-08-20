@@ -1,52 +1,9 @@
 ##  参数介绍
 - **本脚本通过参数来预配置脚本命令，可通过帮助命令来查看有哪些参数：**
 
-> 执行 `./OracleShellInstall --help` 可以查看参数：
+> 执行 `./OracleShellInstall --help` 可以查看参数。
 
-```shell
--i,									--PUBLICIP												PUBLICIP NETWORK ADDRESS
--n,									--HOSTNAME												HOSTNAME(orcl)
--o,									--ORACLE_SID											ORACLE_SID(orcl)
--c,									--ISCDB														IS CDB OR NOT(TRUE|FALSE)
--pb,								--PDBNAME													PDBNAME
--op,								--ORAPASSWD												ORACLE USER PASSWORD(oracle)
--b,									--ENV_BASE_DIR			      				ORACLE BASE DIR(/u01/app)
--s,									--CHARACTERSET			      				ORACLE CHARACTERSET(ZHS16GBK|AL32UTF8)
--rs,								--ROOTPASSWD											ROOT USER PASSWORD
--gp,								--GRIDPASSWD											GRID USER PASSWORD(oracle)
--pb1,								--RAC1PUBLICIP										RAC NODE ONE PUBLIC IP
--pb2,								--RAC2PUBLICIP										RAC NODE SECONED PUBLIC IP
--vi1,								--RAC1VIP													RAC NODE ONE VIRTUAL IP
--vi2,								--RAC2VIP													RAC NODE SECOND VIRTUAL IP
--pi1,								--RAC1PRIVIP											RAC NODE ONE PRIVATE IP
--pi2,								--RAC2PRIVIP											RAC NODE SECOND PRIVATE IP
--pi3,								--RAC1PRIVIP1											RAC NODE ONE PRIVATE IP
--pi4,								--RAC2PRIVIP1											RAC NODE SECOND PRIVATE IP
--puf,								--RACPUBLICFCNAME	        				RAC PUBLIC FC NAME
--prf,								--RACPRIVFCNAME										RAC PRIVATE FC NAME
--prf1,							--RACPRIVFCNAME1									RAC PRIVATE FC NAME
--si,								--RACSCANIP												RAC SCAN IP
--dn,								--ASMDATANAME											RAC ASM DATADISKGROUP NAME(DATA)
--on,								--ASMOCRNAME											RAC ASM OCRDISKGROUP NAME(OCR)
--dd,								--DATA_BASEDISK										RAC DATADISK DISKNAME
--od,								--OCRP_BASEDISK										RAC OCRDISK DISKNAME
--or,								--OCRREDUN												RAC OCR REDUNDANCY(EXTERNAL|NORMAL|HIGH)
--dr,								--DATAREDUN												RAC DATA REDUNDANCY(EXTERNAL|NORMAL|HIGH)
--tsi,   						--TIMESERVERIP            				RAC TIME SERVER IP
--txh    						--TuXingHua               				Tu Xing Hua Install
--udev   						--UDEV                    				Whether Auto Set UDEV
--dns    						--DNS                     				RAC CONFIGURE DNS(Y|N)
--dnss   						--DNSSERVER               				RAC CONFIGURE DNSSERVER LOCAL(Y|N)
--dnsn   						--DNSNAME                 				RAC DNSNAME(orcl.com)
--dnsi   						--DNSIP                   				RAC DNS IP
--m,									--ONLYCONFIGOS										ONLY CONFIG SYSTEM PARAMETER(Y|N)
--g,									--ONLYINSTALLGRID 								ONLY INSTALL GRID SOFTWARE(Y|N)
--w,									--ONLYINSTALLORACLE 		  				ONLY INSTALL ORACLE SOFTWARE(Y|N)
--ocd,								--ONLYCREATEDB		        				ONLY CREATE DATABASE(Y|N)
--gpa,								--GRID RELEASE UPDATE		  				GRID RELEASE UPDATE(32072711)
--opa,								--ORACLE RELEASE UPDATE						ORACLE RELEASE UPDATE(32072711)
-```
-**<font color='blue'>看到上面的参数，是否感觉参数太多，但是这些参数都有用，容我一个个慢慢道来：</font>**
+参数详解：
 
 - **`-i`  全称 PUBLICIP：当前主机用于访问的IP，<font color='red'>必填参数</font>。**
 
