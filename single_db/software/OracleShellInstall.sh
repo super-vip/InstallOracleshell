@@ -4051,7 +4051,6 @@ createDB() {
         exit 99
       fi
     else
-      su - oracle -c "lsnrctl start"
       if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbname ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS -datafileDestination ${ORADATADIR} -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
@@ -4085,7 +4084,6 @@ createDB() {
         exit 99
       fi
     else
-      su - oracle -c "lsnrctl start"
       if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS  -databaseConfigType SINGLE -datafileDestination ${ORADATADIR} -enableArchive true -archiveLogDest ${ARCHIVEDIR} -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
