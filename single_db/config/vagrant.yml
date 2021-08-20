@@ -11,6 +11,6 @@ oracle_password: oracle
 oracle_sid: orcl
 install_base: /u01/app
 characterset: AL32UTF8
-cdb: true
+cdb: false
 pdb: pdb01
 
