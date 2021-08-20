@@ -1,342 +1,300 @@
-# 前言
-作为IT人，相信大家多多少少都接触使用过Oracle数据库，但是很少有人安装过Oracle数据库，因为这种活一般都是DBA干的，比如博主😬。那么，如果自己想安装一套Oracle数据库进行测试，如何安装呢？
+# Shell-InstallOracle
 
-# 一、介绍
-俗说得好：**<font color='#f47920'>"懒人"推动世界的发展。</font>** 既然能用脚本解决的事情，为什么还要那么麻烦，干就完事儿了。
+使用 ShellScripts 脚本安全快速安装 Oracle 数据库！**提高生产力，释放劳动力！**
 
-## 1 功能介绍
-- **本脚本有哪些功能？支持哪些版本？有哪些参数？不急，功能太多，待我慢慢道来：**
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210820-e2383132-4d88-40e5-994c-fc7de60a8792.png)
 
-> - 支持Oracle版本：11GR2、12C、18C、19C、21C
->- 支持Linux版本(x86_64)：6、7、8
->- 支持安装模式：单机，单机集群，RAC
->- 帮助命令查看参数
->- 安装日志记录
->- 配置操作系统
->- 安装Grid软件
->- 安装Oracle软件
->- 安装PSU&&RU补丁
->- 创建数据库
+## 背景
 
-## 2 参数介绍
-- **本脚本通过参数来预配置脚本命令，可通过帮助命令来查看有哪些参数：**
+**为什么要写这个项目？**
 
-> 执行 `./OracleShellInstall --help` 可以查看参数：
+- 首先，安装 Oracle 数据库是一件极为复杂且枯燥的任务；
+- 常规的操作方式往往是基于文档，博客，视频等教程方式，按部就班的执行安装步骤，耗时费力，且极为容易因为粗心导致各种各样的问题产生；
+- 于是，我想到可以编写一个基于标准流程的 Shell 脚本来进行安装，因为只要代码没有错误，机器是不会出错的；
+- 经过大量时间的编写和测试，目前已可以用于生产环境安装部署。
 
-```bash
--i,	--PUBLICIP				PUBLICIP NETWORK ADDRESS
--n,	--HOSTNAME				HOSTNAME(orcl)
--o,	--ORACLE_SID				ORACLE_SID(orcl)
--c,	--ISCDB					IS CDB OR NOT(TRUE|FALSE)
--pb,	--PDBNAME				PDBNAME
--op,	--ORAPASSWD				ORACLE USER PASSWORD(oracle)
--b,	--ENV_BASE_DIR			        ORACLE BASE DIR(/u01/app)
--s,	--CHARACTERSET			        ORACLE CHARACTERSET(ZHS16GBK|AL32UTF8)
--rs,	--ROOTPASSWD				ROOT USER PASSWORD
--gp,	--GRIDPASSWD				GRID USER PASSWORD(oracle)
--pb1,	--RAC1PUBLICIP				RAC NODE ONE PUBLIC IP
--pb2,	--RAC2PUBLICIP				RAC NODE SECONED PUBLIC IP
--vi1,	--RAC1VIP				RAC NODE ONE VIRTUAL IP
--vi2,	--RAC2VIP				RAC NODE SECOND VIRTUAL IP
--pi1,	--RAC1PRIVIP				RAC NODE ONE PRIVATE IP
--pi2,	--RAC2PRIVIP				RAC NODE SECOND PRIVATE IP
--pi3,	--RAC1PRIVIP1				RAC NODE ONE PRIVATE IP
--pi4,	--RAC2PRIVIP1				RAC NODE SECOND PRIVATE IP
--puf,	--RACPUBLICFCNAME	                RAC PUBLIC FC NAME
--prf,	--RACPRIVFCNAME				RAC PRIVATE FC NAME
--prf1,	--RACPRIVFCNAME1			RAC PRIVATE FC NAME
--si,	--RACSCANIP				RAC SCAN IP
--dn,	--ASMDATANAME				RAC ASM DATADISKGROUP NAME(DATA)
--on,	--ASMOCRNAME				RAC ASM OCRDISKGROUP NAME(OCR)
--dd,	--DATA_BASEDISK				RAC DATADISK DISKNAME
--od,	--OCRP_BASEDISK				RAC OCRDISK DISKNAME
--or,	--OCRREDUN				RAC OCR REDUNDANCY(EXTERNAL|NORMAL|HIGH)
--dr,	--DATAREDUN				RAC DATA REDUNDANCY(EXTERNAL|NORMAL|HIGH)
--tsi,   --TIMESERVERIP                          RAC TIME SERVER IP
--txh    --TuXingHua                             Tu Xing Hua Install
--udev   --UDEV                                  Whether Auto Set UDEV
--dns    --DNS                                   RAC CONFIGURE DNS(Y|N)
--dnss   --DNSSERVER                             RAC CONFIGURE DNSSERVER LOCAL(Y|N)
--dnsn   --DNSNAME                               RAC DNSNAME(orcl.com)
--dnsi   --DNSIP                                 RAC DNS IP
--m,	--ONLYCONFIGOS				ONLY CONFIG SYSTEM PARAMETER(Y|N)
--g,	--ONLYINSTALLGRID 			ONLY INSTALL GRID SOFTWARE(Y|N)
--w,	--ONLYINSTALLORACLE 		        ONLY INSTALL ORACLE SOFTWARE(Y|N)
--ocd,	--ONLYCREATEDB		                ONLY CREATE DATABASE(Y|N)
--gpa,	--GRID RELEASE UPDATE		        GRID RELEASE UPDATE(32072711)
--opa,	--ORACLE RELEASE UPDATE		        ORACLE RELEASE UPDATE(32072711)
-```
-**<font color='blue'>看到上面的参数，是否感觉参数太多，但是这些参数都有用，容我一个个慢慢道来：</font>**
-- **`-i`  全称 PUBLICIP：当前主机用于访问的IP，<font color='red'>必填参数</font>。**
+**项目支持哪些平台安装？**
 
-> 使用方式：`-i 10.211.55.100`
-- **`-n` 全称 HOSTNAME：当前主机的主机名，默认值为 orcl。**
+- 本项目仅支持 `Linux64 6/7/8` 平台：`Centos`、`Redhat`、`OracleLinux`。
+- 支持大部分主流 `Oracle` 版本： `11GR2`、`12CR2`、`18C`、`19C`、`21C`。
+- 支持数据库安装模式：`单机`、`单机ASM`、`RAC集群`。
 
-> 使用方式：`-n orcl`
-> 如果选择rac模式，节点1、2主机名自动取为：orcl01、orcl02。
-![rac主机名](https://img-blog.csdnimg.cn/20210614005440752.png)
-- **`-o` 全称 ORACLE_SID：Oracle实例名称，默认值为 orcl。**
+## 下载
 
-> 使用方式：`-o orcl`
+使用此项目之前，需要先从此下载项目：
 
-- **`-c` 全称 ISCDB：判断是否为CDB模式，11GR2不支持该参数，默认值为FALSE。**
-
-> 使用方式：`-c TRUE`
-
-- **`-pb` 全称 PDBNAME：创建PDB的名称，11GR2不支持该参数。**
-
-> 使用方式：`-pb pdb01`
-
-- **`-op` 全称 ORAPASSWD：oracle用户的密码，默认值为oracle。**
-
-> 使用方式：`-op oracle`
-
-- **`-b` 全称 ENV_BASE_DIR：Oracle基础安装目录，默认值为/u01/app。**
-
-> 使用方式：`-b /u01/app`
-
-- **`-s` 全称 CHARACTERSET：Oracle数据库字符集，默认值为AL32UTF8。**
-
-> 使用方式：`-s AL32UTF8`
-
-**<font color='blue'>以下为RAC模式安装的参数：</font>**
-
-- **`-rs` 全称 ROOTPASSWD：root用户的密码，默认值为oracle。**
-
-> 使用方式：`-rs oracle`
-
-- **`-gp` 全称 GRIDPASSWD：grid用户的密码，默认值为oracle。**
-
-> 使用方式：`-gp oracle`
-
-- **`-pb1` 全称 RAC1PUBLICIP：节点一的主机访问IP，<font color='red'>必填参数</font>。**
-
-> 使用方式：`-pb1 10.211.55.100`
-
-- **`-pb2` 全称 RAC2PUBLICIP：节点二的主机访问IP，<font color='red'>必填参数</font>。**
-
-> 使用方式：`-pb2 10.211.55.101`
-
-- **`-vi1` 全称 RAC1VIP：节点一的主机虚拟IP，<font color='red'>必填参数</font>，与主机访问IP网段必须相同。**
-
-> 使用方式：`-vi1 10.211.55.102`
-
-- **`-vi2` 全称 RAC2VIP：节点二的主机虚拟IP，<font color='red'>必填参数</font> ，与主机访问IP网段必须相同。**
-
-> 使用方式：`-vi2 10.211.55.103`
-
-- **`-pi1` 全称 ：RAC1PRIVIP，节点一的主机私有IP，<font color='red'>必填参数</font> ，可凭借喜好进行自定义。**
-
-> 使用方式：`-pi1 10.10.1.1`
-
-- **`-pi2` 全称 ：RAC2PRIVIP，节点二的主机私有IP，<font color='red'>必填参数</font>，可凭借喜好进行自定义。**
-
-> 使用方式：`-pi2 10.10.1.2`
-
-- **`-pi3` 全称 ：RAC1PRIVIP1，节点一的第二个主机私有IP，<font color='blue'>可选参数</font> ，可凭借喜好进行自定义。**
-
-> 使用方式：`-pi3 1.1.1.1`
-
-- **`-pi4` 全称 ：RAC2PRIVIP1，节点二的第二个主机私有IP，<font color='blue'>可选参数</font> ，可凭借喜好进行自定义。**
-
-> 使用方式：`-pi4 1.1.1.2`
-
-- **`-puf` 全称 ：RACPUBLICFCNAME，主机的访问IP对应的网卡名称，<font color='red'>必填参数</font> ，节点1，2必须名称一致。**
-
-> 使用方式：`-puf eth0`
-
-- **`-prf` 全称 RACPRIVFCNAME：主机的私有IP对应的网卡名称，<font color='red'>必填参数</font> ，节点1，2必须名称一致。**
-
-> 使用方式：`-prf eth1`
-
-- **`-prf1` 全称 RACPRIVFCNAME1：主机的第二私有IP对应的网卡名称，<font color='blue'>可选参数</font> ，节点1，2必须名称一致。**
-
-> 使用方式：`-prf1 eth2`
-
-- **`-si` 全称 RACSCANIP：主机的SCANIP，<font color='red'>必填参数</font> ，与主机访问IP网段必须相同。当配置DNS解析时，最多可支持填写3个IP，通过逗号隔开。**
-
-> 使用方式：`-si 10.211.55.104,10.211.55.105,10.211.55.106`
-
-- **`-dn` 全称 ASMDATANAME：ASM数据盘名称，默认值为DATA。**
-
-> 使用方式：`-dn DATA`
-
-- **`-on` 全称 ASMOCRNAME：ASM裁决盘名称，默认值为OCR。**
-
-> 使用方式：`-on OCR`
-
-- **`-dd` 全称 DATA_BASEDISK：数据盘对应的磁盘名称，<font color='red'>必填参数</font> 。支持多块磁盘填写，用逗号隔开。**
-
-> 使用方式：`-dd /dev/sdb,/dev/sdc,/dev/sdd`
-
-- **`-od` 全称 OCR_BASEDISK：裁决盘对应的磁盘名称，<font color='red'>必填参数</font> 。支持多块磁盘填写，用逗号隔开。**
-
-> 使用方式：`-od /dev/sde,/dev/sdf`
-
-- **`-or` 全称 OCRREDUN：裁决盘的冗余选项，默认值为EXTERNAL。<font color='blue'>冗余选项EXTERNAL、NORMAL、HIGH对应磁盘最小数量为1、3、5。</font>**
-
-> 使用方式：`-or EXTERNAL`
-
-- **`-dr` 全称 OCRREDUN：裁决盘的冗余选项，默认值为EXTERNAL。<font color='blue'>冗余选项EXTERNAL、NORMAL、HIGH对应磁盘最小数量为1、2、3。</font>**
-
-> 使用方式：`-dr EXTERNAL`
-
-- **`-tsi` 全称 TIMESERVERIP：时间同步服务器IP，<font color='blue'>可选参数</font> ，根据实际情况进行填写。**
-
-> 使用方式：`-tsi 10.211.55.200`
-
-- **`-txh` 全称 TuXingHua：图形化界面安装，默认值为N。选择Y后将安装图形化界面所需依赖。**
-
-> 使用方式：`-txh Y`
-
-- **`-udev` 全称 UDEV：自动配置multipath+UDEV绑盘，默认值为Y。**
-
-> 使用方式：`-udev Y`
-
-**<font color='blue'>以下参数为配置DNS解析：</font>**
-
-- **`-dns` 全称 DNS：配置DNS解析，默认值为N。**
-
-> 使用方式：`-dns N`
-
-- **`-dnss` 全称 DNSSERVER：当前主机配置为DNS服务器，默认值为N。前提是 `-dns Y` 才生效。**
-
-> 使用方式：`-dnss N`
-
-- **`-dnsn` 全称 DNSNAME：DNS服务器的解析名称，前提是 `-dns Y` 才生效。**
-
-> 使用方式：`-dnsn orcl.com`
-
-- **`-dnsi` 全称 DNSIP：DNS服务器的IP，前提是 `-dns Y` 才生效。**
-
-> 使用方式：`-dnsi 10.211.55.200`
-
-- **`-m` 全称 ONLYCONFIGOS：仅配置操作系统参数，默认值为N。值为Y时，脚本只执行到操作系统配置完成就结束，不会进行安装，通常可用于图形化安装的初始化。**
-
-> 使用方式：`-m Y`
-
-- **`-g` 全称 ONLYINSTALLGRID：仅安装Grid软件，默认值为N。**
-
-> 使用方式：`-g Y`
-
-- **`-w` 全称 ONLYINSTALLORACLE：仅安装Oracle软件，默认值为N。**
-
-> 使用方式：`-w Y`
-
-- **`-ocd` 全称 ONLYCREATEDB：仅创建Oracle数据库实例，默认值为N。**
-
-> 使用方式：`-ocd Y`
-
-- **`-gpa` 全称 GRID RELEASE UPDATE：Grid软件的PSU或者RU补丁的补丁号。**
-
-> 使用方式：`-gpa 32072711`
-
-- **`-opa` 全称 ORACLE RELEASE UPDATE：Oracle软件的PSU或者RU补丁的补丁号。**
-
-> 使用方式：`-opa 32072711`
-
-**<font color='blue'>通过以上的参数介绍，相信大家对脚本的功能已经一览无余了，可以说是非常强大。是不是已经心动不如行动，想要尝试下进行安装了呢？接下来将介绍如何使用脚本。</font>**
-
-# 二、使用
-既然已经了解脚本的功能和参数，接下来就是了解如何使用脚本。
-![脚本流程图](https://img-blog.csdnimg.cn/20210603100942949.png)
-**直接上命令：** `./OracleShellInstall.sh -i 10.211.55.100`
-
-**Notes：** 最便捷安装方式，默认参数不设置，只需加上主机IP，即可一键安装Oracle数据库。
-
-## 1 创建软件目录，例如：/soft
-```
-mkdir /soft
-```
-## 2 挂载Linux安装镜像
-```bash
-## 1.通过cdrom挂载
-mount /dev/cdrom /mnt
-## 2.通过安装镜像源挂载
-mount -o loop /soft/rhel-server-7.9-x86_64-dvd.iso /mnt
-```
-![镜像挂载](https://img-blog.csdnimg.cn/20210603104047853.png)
-## 3 上传安装介质和脚本到软件目录
-```bash
-## 一键安装shell脚本
-140K	OracleShellInstall.sh
-## oracle 11GR2官方安装包
-1.3G	p13390677_112040_Linux-x86-64_1of7.zip
-1.1G	p13390677_112040_Linux-x86-64_2of7.zip
-## 授权脚本执行权限
-chmod +x OracleShellInstall.sh
-```
-![安装介质](https://img-blog.csdnimg.cn/20210603104132703.png)
-## 4 执行安装：
-```
-./OracleShellInstall.sh -i 10.211.55.100
-```
-![执行安装](https://img-blog.csdnimg.cn/20210603104254309.png)
-**等待5-10分钟左右，安装成功。**
-![安装成功提示](https://img-blog.csdnimg.cn/2021060310483362.png)![数据库信息](https://img-blog.csdnimg.cn/20210603105049292.png)
-## 5 数据库连接使用
-不知道如何安装PLSQL的同学，可以参考：[零基础如何玩转PL/SQL DEVELOPER？](https://luciferliu.blog.csdn.net/article/details/117913049)
-- 创建连接用户：
-
-  ![创建连接用户](https://img-blog.csdnimg.cn/20210603110123160.png)
-
-- plsql连接：
-
-  ![plsql连接](https://img-blog.csdnimg.cn/20210603110313601.png)
-  ![测试数据](https://img-blog.csdnimg.cn/2021060311050120.png)
-
-**<font color='blue'>通过如上简单的使用教程，轻松安装Oracle数据库，大大缩减人工和时间成本。</font>**
-
-# 三、示例
-## 1 单实例安装
-```bash
-./OracleShellInstall.sh -i 10.211.55.100 `#Public ip`\
--n orcl `# hostname`\
--o orcl `# oraclesid`\
--op oracle `# oracle user password`\
--b /u01/app `# install basedir`\
--s AL32UTF8 `# characterset`\
--opa 31537677 `# oracle psu number`
+```sh
+$ git clone https://github.com/pc-study/InstallOracleshell.git
 ```
 
-## 2 RAC安装
-```bash
-./OracleShellInstall.sh -i 10.211.55.100 `#Public ip`\
--n rac `# hostname`\
+## 使用说明
+
+本项目使用方式分为`新手纯享版本`和`高手进阶版本`，平时学习测试建议使用新手纯享版本即可。
+
+### 新手纯享版本
+
+新手纯享版本基本不需要基础，目前仅支持 **单机模式** 安装！必须使用 [vagrant](https://www.vagrantup.com/downloads) 和 [virtualbox](https://www.virtualbox.org/wiki/Downloads)，请确保你本地安装了它们。
+
+- **第一步，上传 Oracle 安装包：**
+
+进入项目目录 `InstallOracleshell/single_db/software` 下，可以看到有不同 `Oracle` 版本目录，其中有一个 `software.txt` 文件，内容为你需要上传的 `oracle` 安装包。
+
+```shell
+├── 11204
+│   ├── p13390677_112040_Linux-x86-64_1of7.zip
+│   └── p13390677_112040_Linux-x86-64_2of7.zip
+├── 12201
+│   └── LINUX.X64_122010_db_home.zip
+├── 18000
+│   └── LINUX.X64_180000_db_home.zip
+├── 19300
+│   └── LINUX.X64_193000_db_home.zip
+├── 21300
+│   └── LINUX.X64_213000_db_home.zip
+```
+
+确认你需要安装的 `Oracle` 版本，拷贝 `Oracle` 安装包到对应目录下，**确保安装包名称与以下名称相同，否则安装<font color='red'>失败</font>！**
+
+- **第二步，编辑 vagrant.yml 配置文件：**
+
+进入项目目录 `InstallOracleshell/single_db/config` 下，打开 `vagrant.yml` 文件：
+
+```
+box: luciferliu/centos7.9
+vm_name: orcl
+hostname: orcl
+mem_size: 2048
+cpus: 2
+public_ip: 192.168.56.100
+non_rotational: 'on'
+db_version: 11
+db_patch:
+oracle_password: oracle
+oracle_sid: orcl
+install_base: /u01/app
+characterset: AL32UTF8
+cdb: true
+pdb: pdb01
+```
+
+**参数介绍：**
+```
+box             	: Linux 主机版本，19c 和 21c 版本不支持 linux 6 版本！
+可选值：
+- luciferliu/centos6.10
+- luciferliu/centos7.9
+- luciferliu/centos8.3
+- luciferliu/oraclelinux6.10
+- luciferliu/oraclelinux7.9
+- luciferliu/oraclelinux8.3
+vm_name         	: 虚拟机名称，随意修改，默认即可。
+hostname        	: 主机名称，随意修改，默认即可。
+mem_size        	: 内存大小，单位是 `MiB`，根据需要修改，正常默认即可。
+cpus            	: cpu 个数，根据需要修改，正常默认即可。
+public_ip       	: IP 地址，根据网卡定义修改，正常默认即可。
+non_rotational    : 不用修改值，默认即可。
+db_version      	: oracle 数据库版本，根据实际情况填写！
+db_patch        	: PSU/RU 补丁号，根据需要填写，不打补丁可以不填。
+oracle_password   : oracle 用户密码，默认即可。
+oracle_sid      	: oracle 数据库实例名，默认即可。
+install_base      : oracle 安装根目录，默认即可。
+characterset      : 数据库字符集，根据实际需要填写，正常默认即可。
+cdb             	: CDB 模式需要填写 true。
+pdb             	: PDB 名称，开启 CDB 模式后才可生效。
+```
+
+根据实际情况修改脚本，默认不修改将安装 `Oracle 11GR2` 数据库。
+
+- **第三步，执行 `vagrant up` 安装：**
+
+回到 `InstallOracleshell/single_db` 目录下，执行 `vagrant up` 开始安装。
+
+**📢 注意：** `InstallOracleshell/single_db/software` 目录中的 `OracleShellInstall.sh` 脚本需要保持最新，最新版本脚本在上层目录 `InstallOracleshell` 下。
+
+- **第四步，等待自动安装成功后，连接主机：**
+
+这里有三种方式来连接主机：
+
+1、使用 `ssh root@192.168.56.100` 来连接，`root` 用户密码是 `oracle` ，使用 `Xshell` 等连接工具也可连接；
+
+2、使用 `vagrant ssh` 来连接，注意要在 `InstallOracleshell/single_db` 目录下执行，连接进去是 `vagrant` 用户，使用 `su - oracle` 来切换即可。
+
+3、使用 `Virtualbox` 虚拟机直接打开访问。
+
+- **第五步，关闭主机：**
+
+1、在主机中，执行 `init 0` 等关机命令关闭主机。
+
+2、使用 `Virtualbox` 虚拟机右键关闭。
+
+3、进入  `InstallOracleshell/single_db` 目录下执行 `vagrant halt` 关闭。
+
+- **最后**
+
+用完了，不需要使用了怎么办？
+
+1、直接打开 `Virtualbox` 虚拟机，右键删除。
+
+2、进入  `InstallOracleshell/single_db` 目录下执行 `vagrant destory` 销毁它。
+
+### 高手进阶版本
+
+正常来说，平时学习测试使用 `新手纯享版本` 完全够了，但是如果你想使用在 `生产环境` ，那你必须得学会 `高手进阶版本` ！真正提高生产力~
+
+既然看到这的说明都是高手，那就长话短说，这个项目你只需要下载这一个脚本 `OracleShellInstall.sh` 就够了！
+
+脚本有了，具体如何使用？
+
+![](https://img-blog.csdnimg.cn/20210603100942949.png?" style="float:left;" )
+
+**📢 前提：** 提前安装 Linux 系统，上传安装介质，挂载 ISO 镜像。
+
+### 单机
+
+- **第一步，手动安装 Linux 系统，配置网络，挂载 ISO 镜像；**
+
+- **第二步，创建 /soft 目录，上传安装介质；**
+
+- **第三步，编辑脚本安装命令，填写关键信息：**
+
+`最简安装` 脚本示例：
+
+```shell
+./OracleShellInstall.sh -i 192.168.56.155
+```
+
+`单机自定义` 脚本命令示例：
+
+```shell
+./OracleShellInstall.sh -i 192.168.56.155 `#Public ip`\
+-n topdbdev `# hostname`\
+-o topstd `# oraclesid`\
+-c TRUE `# ISCDB`\
+-pb pdb01 `# PDBNAME`\
 -rs oracle `# root password`\
 -op oracle `# oracle password`\
 -gp oracle `# grid password`\
 -b /u01/app `# install basedir`\
--o orcl `# oraclesid`\
 -s AL32UTF8 `# characterset`\
--pb1 10.211.55.100 -pb2 10.211.55.101 `# node public ip`\
--vi1 10.211.55.102 -vi2 10.211.55.103 `# node virtual ip`\
--pi1 10.10.1.1 -pi2 10.10.1.2 `# node private ip`\
--puf eth0 -prf eth1 `# network fcname`\
--si 10.211.55.105 `# scan ip`\
--dd /dev/sde,/dev/sdf `# asm data disk`\
--od /dev/sdb,/dev/sdc,/dev/sdd `# asm ocr disk`\
--or EXTERNAL `# asm ocr redundancy`\
--dr EXTERNAL `# asm data redundancy`\
--on OCR `# asm ocr diskgroupname`\
--dn DATA `# asm data diskgroupname`\
--gpa 32580003 `# GRID PATCH`
+-ns UTF8 `# national characterset`
 ```
 
-**<font color='blue'>如果能够合理使用该脚本，可以在Linux系统轻松安装Oracle数据库，释放双手，养生敲代码不是梦！！！</font>**
+关于参数解释以及配置，点击 [参数README]() 跳转。
 
-<font color='red'>更多更详细的脚本使用方式可以订阅专栏：</font> [Oracle一键安装脚本](https://blog.csdn.net/m0_50546016/category_11127389.html)
-> - [15分钟！一键部署Oracle 12CR2单机CDB+PDB](https://blog.csdn.net/m0_50546016/article/details/116521750)
->- [20分钟！一键部署Oracle 18C单机CDB+PDB](https://blog.csdn.net/m0_50546016/article/details/116522953)
->- [25分钟！一键部署Oracle 11GR2 HA 单机集群](https://blog.csdn.net/m0_50546016/article/details/116547743)
->- [30分钟！一键部署Oracle 19C单机CDB+PDB](https://blog.csdn.net/m0_50546016/article/details/116524049)
->- [1.5小时！一键部署Oracle 11GR2 RAC 集群](https://blog.csdn.net/m0_50546016/article/details/116549125)
+- **第四步，`root` 用户下进入 `/soft` 目录下执行脚本安装命令；**
 
----
-本次分享到此结束啦~
+- **第五步，等待安装过程中，可以进入 `/soft` 目录中查看安装部署日志，安装结束后重启主机；**
+- **第六步，检查数据库运行情况。**
 
-如果觉得文章对你有帮助，请`star`一下，你的支持就是我创作最大的动力。
+脚本中所有操作均为静默连续执行，敲下命令之后无需任何操作，等待安装成功即可。
 
-技术交流可以**关注公众号：Lucifer三思而后行**
+### 单机ASM
 
-![Lucifer三思而后行](https://img-blog.csdnimg.cn/20210702105616339.jpg)
+`单机ASM` 脚本命令示例：
+
+```shell
+./OracleShellInstall.sh -i 192.168.56.155 `#Public ip`\
+-n topdbdev `# hostname`\
+-o topstd `# oraclesid`\
+-rs oracle `# root password`\
+-op oracle `# oracle password`\
+-gp oracle `# grid password`\
+-b /u01/app `# install basedir`\
+-s AL32UTF8 `# characterset`\
+-ns UTF8 `# national characterset`\
+-dd /dev/sde `# asm data disk`\
+-dn DATA `# asm data diskgroupname`\
+-dr EXTERNAL `# asm data redundancy`\
+-gpa 31718723 `# Grid PSU NUMBER`
+```
+
+关于参数解释以及配置，点击 [参数README]() 跳转。
+
+### RAC
+
+这里我简单说下在生产环境使用脚本部署 `	RAC` 的大概步骤：
+
+- **第一步，手动安装两台 Linux 主机；**
+- **第二步，分别配置网络，挂载 iso 镜像源，挂载共享存储；**
+
+- **第三步，节点一创建 /soft 目录并上传安装介质；**
+
+- **第四步，编辑脚本安装命令，填写两台主机的关键信息；**
+
+`RAC` 脚本命令示例：
+
+```shell
+./OracleShellInstall.sh -i 192.168.56.151 `# node1 Public ip`\
+-n topdb `# rac hostname`\
+-o TOPDB `# oraclesid`\
+-rs oracle `# root password`\
+-op oracle `# oracle password`\
+-gp oracle `# grid password`\
+-b /u01/app `# install basedir`\
+-s AL32UTF8 `# characterset`\
+-ns UTF8 `# national characterset`\
+-pb1 192.168.56.151 -pb2 192.168.56.153 `# node public ip`\
+-vi1 192.168.56.152 -vi2 192.168.56.154 `# node virtual ip`\
+-pi1 10.10.10.11 -pi2 10.10.10.12 `# node private ip`\
+-pi3 10.10.11.11 -pi4 10.10.11.12 `# node private1 ip`\
+-si 192.168.56.150 `# scan ip`\
+-od /dev/sdb,/dev/sdc,/dev/sdd `# asm ocr disk`\
+-dd /dev/sde `# asm data disk`\
+-on OCR `# asm ocr diskgroupname`\
+-dn DATA `# asm data diskgroupname`\
+-or NORMAL `# asm ocr redundancy`\
+-dr EXTERNAL `# asm data redundancy`\
+-puf team0 -prf em3 -prf1 em4 `# network fcname`\
+-tsi 192.168.56.252 `# timeserver`\
+-gpa 31718723 `# Grid PSU NUMBER`
+```
+
+关于参数解释以及配置，点击 [参数README]() 跳转。
+
+- **第五步，节点一 `root` 用户下进入 `/soft` 目录下执行脚本安装命令；**
+
+- **第六步，等待安装过程中，可以进入 `/soft` 目录中查看安装部署日志，安装结束后重启两台主机；**
+- **第七步，检查两台主机数据库运行情况。**
+
+脚本中所有操作均为静默连续执行，敲下命令之后无需任何操作，等待安装成功即可。
+
+## 脚本参数
+
+关于参数解释以及配置，点击 [参数README]() 跳转。
+
+## 徽章
+如果你的项目遵循 Shell-InstallOracle 而且项目位于 Github 上，非常希望你能把这个徽章加入你的项目。它可以更多的人访问到这个项目，而且采纳 Shell-InstallOracle。 加入徽章**并非强制的**。 
+
+[![](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/mit-license.php) [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme) [![](https://img.shields.io/badge/Shell-Oracle-ff69b4?style=plastic&logo=appveyor)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/vagrant-oracle-orange?style=plastic&logo=appveyor)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-11RG2-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-12CR2-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-18C-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-19C-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-21C-blue)](https://github.com/pc-study/InstallOracleshell)
+
+❤️ **欢迎 👏🏻 关注作者！**❤️
+
+[![](https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-red)](https://mp.weixin.qq.com/s/mNtdtnNpjfXjpkB6jkoZUQ) [![](https://img.shields.io/badge/CSDN-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-orange)](https://luciferliu.blog.csdn.net/)
+
+为了加入徽章到 Markdown 文本里面，可以使用以下代码：
+
+```
+[![standard-readme compliant](https://img.shields.io/badge/Shell-Oracle-ff69b4?style=plastic&logo=appveyor)](https://github.com/pc-study/InstallOracleshell)
+```
+
+## 相关仓库
+
+- [Vagrant Builds](https://github.com/oraclebase/vagrant) — OracleBase Install Oracle By Vagrant。
+- [Bento](https://github.com/chef/bento) — Provide [Packer](https://www.packer.io/) templates for building [Vagrant](https://www.vagrantup.com/) base boxes。
+
+## 维护者
+
+[@pc-study](https://github.com/pc-study/InstallOracleshell)
+
+## 如何贡献
+
+非常欢迎你的加入！[提一个 Issue](https://github.com/pc-study/InstallOracleshell/issues/new) 或者提交一个 Pull Request。
+
+**❤️创作不易，觉得好的可以请我喝杯奶茶🧋哈！**
+
+<img src="https://oss-emcsprod-public.modb.pro/image/editor/20210820-4257a655-756a-4a53-8a3f-6e8de333da81.png?" style="zoom:48%;float:left" />
+
+
+## 使用许可
+
+[MIT](LICENSE) © Lucifer三思而后行

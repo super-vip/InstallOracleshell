@@ -1,16 +1,16 @@
 box: luciferliu/oraclelinux7.9
-vm_name: ol7_oracle
-hostname: p11g
+vm_name: orcl
+hostname: orcl
 mem_size: 2048
 cpus: 2
 public_ip: 192.168.56.100
 non_rotational: 'on'
 db_version: 11
-db_patch: 31537677
+db_patch: 
 oracle_password: oracle
-oracle_sid: lucifer
-install_base: /oracle/app
-characterset: ZHS16GBK
+oracle_sid: orcl
+install_base: /u01/app
+characterset: AL32UTF8
 cdb: true
 pdb: pdb01
 
