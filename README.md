@@ -15,9 +15,9 @@
 
 **项目支持哪些平台安装？**
 
-- 本项目仅支持 `Linux64 6/7/8` 平台：`Centos`、`Redhat`、`OracleLinux`。
-- 支持大部分主流 `Oracle` 版本： `11GR2`、`12CR2`、`18C`、`19C`、`21C`。
-- 支持数据库安装模式：`单机`、`单机ASM`、`RAC集群`。
+- 本项目仅支持 「 Linux64-6/7/8  」 平台：Centos、Redhat、OracleLinux。
+- 支持大部分主流 「 ORACLE 」 版本： 11GR2、12CR2、18C、19C、21C。
+- 支持数据库安装模式：单机、单机ASM、RAC集群。
 
 ## 下载
 
@@ -29,7 +29,7 @@ $ git clone https://github.com/pc-study/InstallOracleshell.git
 
 ## 使用说明
 
-本项目使用方式分为`新手纯享版本`和`高手进阶版本`，平时学习测试建议使用新手纯享版本即可。
+本项目使用方式分为 `新手纯享版本` 和 `高手进阶版本` ，平时学习测试建议使用新手纯享版本即可。
 
 ### 新手纯享版本
 
@@ -37,7 +37,7 @@ $ git clone https://github.com/pc-study/InstallOracleshell.git
 
 - **第一步，上传 Oracle 安装包：**
 
-进入项目目录 `InstallOracleshell/single_db/software` 下，可以看到有不同 `Oracle` 版本目录，其中有一个 `software.txt` 文件，内容为你需要上传的 `oracle` 安装包。
+进入项目目录 `InstallOracleshell/single_db/software` 下，可以看到有不同 Oracle 版本目录，其中有一个 `software.txt` 文件，内容为你需要上传的 Oracle 安装包。
 
 ```shell
 ├── 11204
@@ -53,7 +53,7 @@ $ git clone https://github.com/pc-study/InstallOracleshell.git
 │   └── LINUX.X64_213000_db_home.zip
 ```
 
-确认你需要安装的 `Oracle` 版本，拷贝 `Oracle` 安装包到对应目录下，**确保安装包名称与以下名称相同，否则安装<font color='red'>失败</font>！**
+确认你需要安装的 Oracle 版本，拷贝 Oracle 安装包到对应目录下，**确保安装包名称与以下名称相同，否则安装<font color='red'>失败</font>！**
 
 - **第二步，编辑 vagrant.yml 配置文件：**
 
@@ -103,29 +103,29 @@ cdb             	: CDB 模式需要填写 true。
 pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 ```
 
-根据实际情况修改脚本，默认不修改将安装 `Oracle 11GR2` 数据库。
+根据实际情况修改脚本，默认不修改将安装 **Oracle 11GR2** 数据库。
 
 - **第三步，执行 `vagrant up` 安装：**
 
 回到 `InstallOracleshell/single_db` 目录下，执行 `vagrant up` 开始安装。
 
-**📢 注意：** `InstallOracleshell/single_db/software` 目录中的 `OracleShellInstall.sh` 脚本需要保持最新，最新版本脚本在上层目录 `InstallOracleshell` 下。
+**📢 注意：** InstallOracleshell/single_db/software  目录中的 OracleShellInstall.sh 脚本需要保持最新，最新版本脚本在上层目录 InstallOracleshell 下。
 
 - **第四步，等待自动安装成功后，连接主机：**
 
 这里有三种方式来连接主机：
 
-1、使用 `ssh root@192.168.56.100` 来连接，`root` 用户密码是 `oracle` ，使用 `Xshell` 等连接工具也可连接；
+1、使用 `ssh root@192.168.56.100` 来连接，root 用户密码是 oracle ，使用 Xshell 等连接工具也可连接；
 
-2、使用 `vagrant ssh` 来连接，注意要在 `InstallOracleshell/single_db` 目录下执行，连接进去是 `vagrant` 用户，使用 `su - oracle` 来切换即可。
+2、使用 `vagrant ssh` 来连接，注意要在 `InstallOracleshell/single_db` 目录下执行，连接进去是 vagrant 用户，使用 `su - oracle` 来切换即可。
 
-3、使用 `Virtualbox` 虚拟机直接打开访问。
+3、使用 Virtualbox 虚拟机直接打开访问。
 
 - **第五步，关闭主机：**
 
 1、在主机中，执行 `init 0` 等关机命令关闭主机。
 
-2、使用 `Virtualbox` 虚拟机右键关闭。
+2、使用 Virtualbox 虚拟机右键关闭。
 
 3、进入  `InstallOracleshell/single_db` 目录下执行 `vagrant halt` 关闭。
 
@@ -133,7 +133,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 
 用完了，不需要使用了怎么办？
 
-1、直接打开 `Virtualbox` 虚拟机，右键删除。
+1、直接打开 Virtualbox 虚拟机，右键删除。
 
 2、进入  `InstallOracleshell/single_db` 目录下执行 `vagrant destory` 销毁它。
 
@@ -145,7 +145,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 
 脚本有了，具体如何使用？
 
-![](https://img-blog.csdnimg.cn/20210603100942949.png?" style="float:left;" )
+<img src="https://img-blog.csdnimg.cn/20210603100942949.png" style="float:left" />
 
 **📢 前提：** 提前安装 Linux 系统，上传安装介质，挂载 ISO 镜像。
 
@@ -179,7 +179,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 -ns UTF8 `# national characterset`
 ```
 
-关于参数解释以及配置，点击 [参数README]() 跳转。
+关于参数解释以及配置，点击 [参数README](ParameterREADME.md) 跳转。
 
 - **第四步，`root` 用户下进入 `/soft` 目录下执行脚本安装命令；**
 
@@ -208,7 +208,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 -gpa 31718723 `# Grid PSU NUMBER`
 ```
 
-关于参数解释以及配置，点击 [参数README]() 跳转。
+关于参数解释以及配置，点击 [参数README](ParameterREADME.md) 跳转。
 
 ### RAC
 
@@ -249,7 +249,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 -gpa 31718723 `# Grid PSU NUMBER`
 ```
 
-关于参数解释以及配置，点击 [参数README]() 跳转。
+关于参数解释以及配置，点击 [参数README](ParameterREADME.md) 跳转。
 
 - **第五步，节点一 `root` 用户下进入 `/soft` 目录下执行脚本安装命令；**
 
@@ -260,7 +260,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 
 ## 脚本参数
 
-关于参数解释以及配置，点击 [参数README]() 跳转。
+关于参数解释以及配置，点击 [参数README](ParameterREADME.md) 跳转。
 
 ## 徽章
 如果你的项目遵循 Shell-InstallOracle 而且项目位于 Github 上，非常希望你能把这个徽章加入你的项目。它可以更多的人访问到这个项目，而且采纳 Shell-InstallOracle。 加入徽章**并非强制的**。 
