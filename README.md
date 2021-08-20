@@ -267,7 +267,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 
 [![](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/mit-license.php) [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme) [![](https://img.shields.io/badge/Shell-Oracle-ff69b4?style=plastic&logo=appveyor)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/vagrant-oracle-orange?style=plastic&logo=appveyor)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-11RG2-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-12CR2-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-18C-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-19C-blue)](https://github.com/pc-study/InstallOracleshell) [![](https://img.shields.io/badge/Oracle-21C-blue)](https://github.com/pc-study/InstallOracleshell)
 
-❤️ **欢迎 👏🏻 关注作者！**❤️
+**❤️ 欢迎 👏🏻 关注作者！❤️**
 
 [![](https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-red)](https://mp.weixin.qq.com/s/mNtdtnNpjfXjpkB6jkoZUQ) [![](https://img.shields.io/badge/CSDN-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-orange)](https://luciferliu.blog.csdn.net/)
 
