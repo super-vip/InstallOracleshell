@@ -3893,7 +3893,6 @@ EOF
     else
       ##NO PATCH
       su - oracle -c "${ENV_ORACLE_HOME}/runInstaller -silent -force -responseFile ${SOFTWAREDIR}/db.rsp -ignorePrereq -waitForCompletion"
-      createNetca
     fi
 
   fi
@@ -3970,8 +3969,7 @@ EOF
         fi
       fi
     else
-      if [ "${DB_VERSION}" = "11.2.0.4" ] || [[ "${DB_VERSION}" == "12.2.0.1" ]]; then
-        createNetca
+      if [ "${DB_VERSION}" = "11.2.0.4" ] || [[ "${DB_VERSION}" == "12.2.0.1" ]]; then        
         ## NOT RAC
         su - oracle <<EOF
 cd ${SOFTWAREDIR}/${OPATCH} || return
@@ -4028,9 +4026,11 @@ EOF
 # Create netca.rsp
 ####################################################################################
 createNetca() {
-  if [ -f "${ENV_ORACLE_HOME}"/assistants/netca/netca.rsp ]; then
-    if ! su - oracle -c "netca -silent -responsefile ${ENV_ORACLE_HOME}/assistants/netca/netca.rsp"; then
-      c1 "Sorry, Listener Create Failed." red
+  if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" ]; then
+    if [ -f "${ENV_ORACLE_HOME}"/assistants/netca/netca.rsp ]; then
+      if ! su - oracle -c "netca -silent -responsefile ${ENV_ORACLE_HOME}/assistants/netca/netca.rsp"; then
+        c1 "Sorry, Listener Create Failed." red
+      fi
     fi
   fi
 }
@@ -4419,58 +4419,6 @@ select lower(user) || '@' || substr( global_name, 1, decode( dot, 0,length(globa
 set sqlprompt '&gname _DATE> '
 ALTER SESSION SET nls_date_format = 'HH24:MI:SS';
 set termout on
-
-col TABLESPACE_NAME for a20
-select tbs_used_info.tablespace_name,
-       tbs_used_info.alloc_mb,
-       tbs_used_info.used_mb,
-       tbs_used_info.max_mb,
-       tbs_used_info.free_of_max_mb,
-       tbs_used_info.used_of_max || '%' used_of_max_pct
-  from (select a.tablespace_name,
-               round(a.bytes_alloc / 1024 / 1024) alloc_mb,
-               round((a.bytes_alloc - nvl(b.bytes_free,
-                                          0)) / 1024 / 1024) used_mb,
-               round((a.bytes_alloc - nvl(b.bytes_free,
-                                          0)) * 100 / a.maxbytes) used_of_max,
-               round((a.maxbytes - a.bytes_alloc + nvl(b.bytes_free,
-                                                       0)) / 1048576) free_of_max_mb,
-               round(a.maxbytes / 1048576) max_mb
-          from (select f.tablespace_name,
-                       sum(f.bytes) bytes_alloc,
-                       sum(decode(f.autoextensible,
-                                  'YES',
-                                  f.maxbytes,
-                                  'NO',
-                                  f.bytes)) maxbytes
-                  from dba_data_files f
-                 group by tablespace_name) a,
-               (select f.tablespace_name,
-                       sum(f.bytes) bytes_free
-                  from dba_free_space f
-                 group by tablespace_name) b
-         where a.tablespace_name = b.tablespace_name(+)) tbs_used_info
- order by tbs_used_info.used_of_max desc;
-
-col status for a10
-col input_type for a20
-col INPUT_BYTES_DISPLAY for a10
-col OUTPUT_BYTES_DISPLAY for a10
-col TIME_TAKEN_DISPLAY for a10
-
-select input_type,
-       status,
-       to_char(start_time,
-               'yyyy-mm-dd hh24:mi:ss'),
-       to_char(end_time,
-               'yyyy-mm-dd hh24:mi:ss'),
-       input_bytes_display,
-       output_bytes_display,
-       time_taken_display,
-       COMPRESSION_RATIO
-  from v\$rman_backup_job_details
- where start_time > date '2021-07-01'
- order by 3 desc;
  --OracleEnd
 EOF
   fi
@@ -4503,6 +4451,7 @@ if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" 
   if [ "${ONLYCONFIGOS}" = 'N' ]; then
     if [ "${ONLYINSTALLORACLE}" = 'Y' ]; then
       InstallDBsoftware
+      createNetca
       c1 "Congratulations, Install Successful!" blue
     else
       if [ "${ONLYCREATEDB}" = 'Y' ]; then
@@ -4511,6 +4460,7 @@ if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" 
         c1 "Congratulations, Install Successful!" blue
       else
         InstallDBsoftware
+        createNetca
         createDB
         DBParaSet
         c1 "Congratulations, Install Successful! Please Reboot Later." blue
@@ -4567,6 +4517,7 @@ elif [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; t
       else
         if [ "${ONLYINSTALLORACLE}" = "Y" ]; then
           InstallDBsoftware
+
           c1 "Congratulations, Install Successful!" blue
         else
           if [ "${ONLYCREATEDB}" = "Y" ]; then
