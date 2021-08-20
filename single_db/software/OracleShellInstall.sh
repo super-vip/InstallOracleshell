@@ -1542,18 +1542,6 @@ CreateUsersAndDirs() {
     echo "inventory_loc=${ENV_ORACLE_INVEN}" >>/etc/oraInst.loc
     echo "inst_group=oinstall" >>/etc/oraInst.loc
   fi
-
-  ## Judge DISK SPACE
-  if [ "${OS_VERSION}" = "linux6" ]; then
-    BASEDIR_SPACE=$(df "${ENV_BASE_DIR}" | tail -n 1 | awk '{printf $3}')
-  elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-    BASEDIR_SPACE=$(df "${ENV_BASE_DIR}" | tail -n 1 | awk '{printf $4}')
-  fi
-  BASEDIR_SPACE=$((BASEDIR_SPACE / 1024 / 1024))
-  if [ "${BASEDIR_SPACE}" -lt 50 ]; then
-    c1 "${ENV_BASE_DIR} Disk Space ${BASEDIR_SPACE}G is not enough (50G), Install Maybe Failed." red
-    sleep 3
-  fi
 }
 
 ####################################################################################
@@ -4045,7 +4033,6 @@ createNetca() {
       c1 "Sorry, Listener Create Failed." red
     fi
   fi
-  logwrite "${SOFTWAREDIR}/netca.rsp" "cat ${SOFTWAREDIR}/netca.rsp"
 }
 
 ####################################################################################
@@ -4339,6 +4326,7 @@ EOF
     cat <<EOF >/home/oracle/password_unlimt.sql
 ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER SYSTEM SET AUDIT_TRAIL=NONE SCOPE=SPFILE;
+alter system set processes=1000 scope=spfile;
 ALTER SYSTEM SET DEFERRED_SEGMENT_CREATION=FALSE;
 ALTER SYSTEM SET "_OPTIMIZER_CARTESIAN_ENABLED"=FALSE;
 ALTER SYSTEM SET "_USE_SINGLE_LOG_WRITER"=FALSE SCOPE=SPFILE;
@@ -4353,6 +4341,7 @@ EOF
     cat <<EOF >/home/oracle/password_unlimt.sql
 ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER SYSTEM SET AUDIT_TRAIL=NONE SCOPE=SPFILE;
+alter system set processes=1000 scope=spfile;
 ALTER SYSTEM SET DEFERRED_SEGMENT_CREATION=FALSE;
 ALTER SYSTEM SET "_OPTIMIZER_CARTESIAN_ENABLED"=FALSE;
 --ALTER SYSTEM SET "_USE_SINGLE_LOG_WRITER"=FALSE SCOPE=SPFILE;
