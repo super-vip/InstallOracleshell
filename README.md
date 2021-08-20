@@ -292,8 +292,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 
 **❤️创作不易，觉得好的可以请我喝杯奶茶🧋哈！**
 
-<img src="https://oss-emcsprod-public.modb.pro/image/editor/20210820-4257a655-756a-4a53-8a3f-6e8de333da81.png?" style="zoom:48%;float:left" />
-
+<img src="https://oss-emcsprod-public.modb.pro/image/editor/20210820-4257a655-756a-4a53-8a3f-6e8de333da81.png" style="zoom:48%;float:left" />
 
 ## 使用许可
 
