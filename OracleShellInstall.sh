@@ -4033,7 +4033,6 @@ createNetca() {
       c1 "Sorry, Listener Create Failed." red
     fi
   fi
-  logwrite "${SOFTWAREDIR}/netca.rsp" "cat ${SOFTWAREDIR}/netca.rsp"
 }
 
 ####################################################################################
@@ -4327,6 +4326,7 @@ EOF
     cat <<EOF >/home/oracle/password_unlimt.sql
 ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER SYSTEM SET AUDIT_TRAIL=NONE SCOPE=SPFILE;
+alter system set processes=2000 scope=spfile;
 ALTER SYSTEM SET DEFERRED_SEGMENT_CREATION=FALSE;
 ALTER SYSTEM SET "_OPTIMIZER_CARTESIAN_ENABLED"=FALSE;
 ALTER SYSTEM SET "_USE_SINGLE_LOG_WRITER"=FALSE SCOPE=SPFILE;
@@ -4341,6 +4341,7 @@ EOF
     cat <<EOF >/home/oracle/password_unlimt.sql
 ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER SYSTEM SET AUDIT_TRAIL=NONE SCOPE=SPFILE;
+alter system set processes=2000 scope=spfile;
 ALTER SYSTEM SET DEFERRED_SEGMENT_CREATION=FALSE;
 ALTER SYSTEM SET "_OPTIMIZER_CARTESIAN_ENABLED"=FALSE;
 --ALTER SYSTEM SET "_USE_SINGLE_LOG_WRITER"=FALSE SCOPE=SPFILE;
