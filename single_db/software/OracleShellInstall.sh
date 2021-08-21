@@ -4012,15 +4012,14 @@ EOF
     if [ -d "/${SOFTWAREDIR}/""${GPATCH}" ] && [ -n "${GPATCH}" ]; then
       cd ~ || return
       rm -rf "/${SOFTWAREDIR:?}/""${GPATCH}"
-      ssh "$RAC2HOSTNAME" "/${SOFTWAREDIR:?}/""${GPATCH}"
+      if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
+        ssh "$RAC2HOSTNAME" rm -rf "/${SOFTWAREDIR:?}/""${GPATCH}"
+      fi
     fi
   else
     if [ -d "/${SOFTWAREDIR}/""${OPATCH}" ] && [ -n "${OPATCH}" ]; then
       cd ~ || return
       rm -rf "/${SOFTWAREDIR:?}/""${OPATCH}"
-      if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
-        ssh "$RAC2HOSTNAME" rm -rf "/${SOFTWAREDIR:?}/""${OPATCH}"
-      fi
     fi
   fi
 }
