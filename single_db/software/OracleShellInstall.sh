@@ -1598,71 +1598,72 @@ EOF
   fi
 
   ocrdisk_sum=0
-  for i in ${OCR_BASEDISK//,/ }; do
-    ##judge whether disk is null,if disk is not null
-    ocrdisk_size=$(lsblk "${i}" | awk '{print $4}' | head -n 2 | tail -n 1)
-    ocrdisk_size=${ocrdisk_size//G/}
-    ocrdisk_sum=$((ocrdisk_sum + ocrdisk_size))
-    if [ "$nodeNum" -eq 1 ]; then
-      if [ "$(hexdump -n 1024 -C "${i}" | grep -c "${ASMOCRNAME}")" -gt 0 ]; then
-        c1 "[FATAL] [INS-30516] Please specify unique disk groups." red
-        echo
-        echo "${i} :"
-        hexdump -n 1024 -C "${i}" | grep "${ASMOCRNAME}"
-        echo
-        c1 "The ""${ASMOCRNAME}"" diskgroup name provided already exists on the disk. Whether Format the disk $i ?(Y|N)" blue
-        read -r formatocrdisk
-        if [ "$formatocrdisk" = "Y" ] || [ "$formatocrdisk" = "y" ]; then
-          c1 "Now Formatting Disk ${i} ........" red
-          dd if=/dev/zero of="${i}" bs=10M count=10
-        else
-          c1 "Install Failed. [INS-30516] Please specify unique disk groups." red
-          exit 99
+  if [ -n "${OCR_BASEDISK}" ]; then
+    for i in ${OCR_BASEDISK//,/ }; do
+      ##judge whether disk is null,if disk is not null
+      ocrdisk_size=$(lsblk "${i}" | awk '{print $4}' | head -n 2 | tail -n 1)
+      ocrdisk_size=${ocrdisk_size//G/}
+      ocrdisk_sum=$((ocrdisk_sum + ocrdisk_size))
+      if [ "$nodeNum" -eq 1 ]; then
+        if [ "$(hexdump -n 1024 -C "${i}" | grep -c "${ASMOCRNAME}")" -gt 0 ]; then
+          c1 "[FATAL] [INS-30516] Please specify unique disk groups." red
+          echo
+          echo "${i} :"
+          hexdump -n 1024 -C "${i}" | grep "${ASMOCRNAME}"
+          echo
+          c1 "The ""${ASMOCRNAME}"" diskgroup name provided already exists on the disk. Whether Format the disk $i ?(Y|N)" blue
+          read -r formatocrdisk
+          if [ "$formatocrdisk" = "Y" ] || [ "$formatocrdisk" = "y" ]; then
+            c1 "Now Formatting Disk ${i} ........" red
+            dd if=/dev/zero of="${i}" bs=10M count=10
+          else
+            c1 "Install Failed. [INS-30516] Please specify unique disk groups." red
+            exit 99
+          fi
         fi
       fi
-    fi
 
-    ##Configure multipath.conf
-    if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
-      ## VirtualBox
-      if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
-        num1=$((num1 + 1))
-        if [ "${OS_VERSION}" = "linux6" ]; then
-          cat <<EOF >>/etc/multipath.conf
+      ##Configure multipath.conf
+      if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+        ## VirtualBox
+        if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
+          num1=$((num1 + 1))
+          if [ "${OS_VERSION}" = "linux6" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias ocr_${num1}
   }
 EOF
-        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-          cat <<EOF >>/etc/multipath.conf
+          elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(/usr/lib/udev/scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias ocr_${num1}
   }
 EOF
-        fi
-      else
-        num1=$((num1 + 1))
-        if [ "${OS_VERSION}" = "linux6" ]; then
-          cat <<EOF >>/etc/multipath.conf
+          fi
+        else
+          num1=$((num1 + 1))
+          if [ "${OS_VERSION}" = "linux6" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(scsi_id -g -u "${i}")"
   alias ocr_${num1}
   }
 EOF
-        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-          cat <<EOF >>/etc/multipath.conf
+          elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(/usr/lib/udev/scsi_id -g -u "${i}")"
   alias ocr_${num1}
   }
 EOF
+          fi
         fi
       fi
-    fi
-  done
-
+    done
+  fi
   if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
     if [ "${DB_VERSION}" = "12.2.0.1" ]; then
       if [ "$OCRREDUN" = "NORMAL" ]; then
@@ -1676,64 +1677,66 @@ EOF
       fi
     fi
   fi
-  for i in ${DATA_BASEDISK//,/ }; do
-    if [ "$nodeNum" -eq 1 ]; then
-      if [ "$(hexdump -n 1024 -C "${i}" | grep -c "${ASMDATANAME}")" -gt 0 ]; then
-        c1 "[FATAL] [INS-30516] Please specify unique disk groups." red
-        echo "${i} :"
-        hexdump -n 1024 -C "${i}" | grep "${ASMDATANAME}"
-        echo
-        c1 "The ""${ASMDATANAME}"" diskgroup name provided already exists on the disk. Whether Format the disk $i ?(Y|N)" blue
-        read -r formatdatadisk
-        if [ "$formatdatadisk" = "Y" ] || [ "$formatdatadisk" = "y" ]; then
-          c1 "Now Formatting Disk ${i} ........" red
-          dd if=/dev/zero of="${i}" bs=10M count=10
-        else
-          c1 "Install Failed. [INS-30516] Please specify unique disk groups." red
-          exit 99
+  if [ -n "${DATA_BASEDISK}" ]; then
+    for i in ${DATA_BASEDISK//,/ }; do
+      if [ "$nodeNum" -eq 1 ]; then
+        if [ "$(hexdump -n 1024 -C "${i}" | grep -c "${ASMDATANAME}")" -gt 0 ]; then
+          c1 "[FATAL] [INS-30516] Please specify unique disk groups." red
+          echo "${i} :"
+          hexdump -n 1024 -C "${i}" | grep "${ASMDATANAME}"
+          echo
+          c1 "The ""${ASMDATANAME}"" diskgroup name provided already exists on the disk. Whether Format the disk $i ?(Y|N)" blue
+          read -r formatdatadisk
+          if [ "$formatdatadisk" = "Y" ] || [ "$formatdatadisk" = "y" ]; then
+            c1 "Now Formatting Disk ${i} ........" red
+            dd if=/dev/zero of="${i}" bs=10M count=10
+          else
+            c1 "Install Failed. [INS-30516] Please specify unique disk groups." red
+            exit 99
+          fi
         fi
       fi
-    fi
-    ##Configure multipath.conf
-    if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
-      ## VirtualBox
-      if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
-        num2=$((num2 + 1))
-        if [ "${OS_VERSION}" = "linux6" ]; then
-          cat <<EOF >>/etc/multipath.conf
+      ##Configure multipath.conf
+      if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
+        ## VirtualBox
+        if [ "${VirtualBox}" = "y" ] || [ "${VirtualBox}" = "Y" ]; then
+          num2=$((num2 + 1))
+          if [ "${OS_VERSION}" = "linux6" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias data_${num2}
   }
 EOF
-        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-          cat <<EOF >>/etc/multipath.conf
+          elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(echo $(/usr/lib/udev/scsi_id -g -u "${i}") | sed 's/1ATA_//')"
   alias data_${num2}
   }
 EOF
-        fi
-      else
-        num2=$((num2 + 1))
-        if [ "${OS_VERSION}" = "linux6" ]; then
-          cat <<EOF >>/etc/multipath.conf
+          fi
+        else
+          num2=$((num2 + 1))
+          if [ "${OS_VERSION}" = "linux6" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(scsi_id -g -u "${i}")"
   alias data_${num2}
   }
 EOF
-        elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
-          cat <<EOF >>/etc/multipath.conf
+          elif [ "${OS_VERSION}" = "linux7" ] || [ "${OS_VERSION}" = "linux8" ]; then
+            cat <<EOF >>/etc/multipath.conf
   multipath {
   wwid "$(/usr/lib/udev/scsi_id -g -u "${i}")"
   alias data_${num2}
   }
 EOF
+          fi
         fi
       fi
-    fi
-  done
+    done
+  fi
 
   ##Configure multipath.conf
   if [ "${UDEV}" = "Y" ] || [ "${UDEV}" = "y" ]; then
@@ -3969,7 +3972,7 @@ EOF
         fi
       fi
     else
-      if [ "${DB_VERSION}" = "11.2.0.4" ] || [[ "${DB_VERSION}" == "12.2.0.1" ]]; then        
+      if [ "${DB_VERSION}" = "11.2.0.4" ] || [[ "${DB_VERSION}" == "12.2.0.1" ]]; then
         ## NOT RAC
         su - oracle <<EOF
 cd ${SOFTWAREDIR}/${OPATCH} || return
@@ -4026,7 +4029,7 @@ EOF
 # Create netca.rsp
 ####################################################################################
 createNetca() {
-  if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" ]; then
+  if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" ] ; then
     if [ -f "${ENV_ORACLE_HOME}"/assistants/netca/netca.rsp ]; then
       if ! su - oracle -c "netca -silent -responsefile ${ENV_ORACLE_HOME}/assistants/netca/netca.rsp"; then
         c1 "Sorry, Listener Create Failed." red
