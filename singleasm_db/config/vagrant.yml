@@ -1,19 +1,19 @@
-box: luciferliu/centos8.3
+box: luciferliu/oraclelinux7.9
 vm_name: orcl
 hostname: orcl
 mem_size: 4096
-cpus: 2
+cpus: 4
 public_ip: 192.168.56.100
 non_rotational: 'on'
 asmdisk_data_name: ./asm_data.vdi
 asmdisk_data_size: 20
-db_version: 12
-gi_patch: 32928749
+db_version: 11
+gi_patch: 
 grid_password: oracle 
 oracle_password: oracle
 oracle_sid: orcl
 install_base: /u01/app
 characterset: AL32UTF8
-cdb: true
+cdb: false
 pdb: pdb01
 
