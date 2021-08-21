@@ -1,5 +1,3 @@
-@[TOC](目录)
-
 # 前言
 
 使用 vagrant 的前提是要有 box 镜像盒子来初始化系统，网上有很多 box 可以下载，但是用自己的不是更香吗？自己动手，丰衣足食！
@@ -12,11 +10,11 @@
 
 ## 下载系统镜像
 
-下载 Oracle Linux 6.10 安装包，下载地址：[精心整理Linux各版本安装包（包括Centos、Redhat、Oracle Linux），附下载链接🔗](https://www.modb.pro/db/83965)
+下载 Oracle Linux 7.9 安装包，下载地址：[精心整理Linux各版本安装包（包括Centos、Redhat、Oracle Linux），附下载链接🔗](https://www.modb.pro/db/83965)
 
-![](https://oss-emcsprod-public.modb.pro/image/editor/20210819-913af161-d8ff-4eff-94fc-b5d6d15dc1cc.png)
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-197c277e-9fc5-4216-b9cf-e8b998a54f89.png)
 
-**这里的校验码记录一下：** `625044388ee60a031965a42a32f4c1de0c029268975edcd542fd14160e0dadcb`
+**这里的校验码记录一下：** `28d2928ded40baddcd11884b9a6a611429df12897784923c346057ec5cdd1012`
 
 ## 下载打包源码
 
@@ -29,7 +27,7 @@ git clone https://hub.fastgit.org/chef/bento.git
 
 将系统镜像文件拷贝至 `bento/packer_templates/oraclelinux` 目录下：
 
-![](https://oss-emcsprod-public.modb.pro/image/editor/20210819-2ba1a5d9-9f75-4802-a799-c55824c3fe1e.png)
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-e9d14ef3-b72f-4e78-a679-e003cfea5636.png)
 
 **<font color='green'>确认环境准备好之后，可以开始进行打包。</font>**
 
@@ -37,14 +35,14 @@ git clone https://hub.fastgit.org/chef/bento.git
 
 ## 自定义json文件
 
-使用目录中的 `oracle-6.10-x86_64.json` 文件，复制为 `oraclelinux610.json` ，进行自定义修改：
+使用目录中的 `oracle-7.9-x86_64.json` 文件，复制为 `oraclelinux79.json` ，进行自定义修改：
 
 ```json
 {
   "builders": [
     {
       "boot_command": [
-        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `ks_path`}}<enter><wait>"
+        "<up><wait><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `ks_path`}} net.ifnames=0 biosdevname=0<enter><wait>"
       ],
       "boot_wait": "5s",
       "cpus": "{{ user `cpus` }}",
@@ -102,9 +100,9 @@ git clone https://hub.fastgit.org/chef/bento.git
   ],
   "variables": {
     "arch": "64",
-    "box_basename": "oraclelinux6.10",
+    "box_basename": "oraclelinux7.9",
     "build_directory": "../../builds",
-    "build_timestamp": "{{isotime \"20210819132100\"}}",
+    "build_timestamp": "{{isotime \"20210818150800\"}}",
     "cpus": "2",
     "disk_size": "65536",
     "git_revision": "__unknown_git_revision__",
@@ -115,19 +113,18 @@ git clone https://hub.fastgit.org/chef/bento.git
     "https_proxy": "{{env `https_proxy`}}",
     "hyperv_generation": "1",
     "hyperv_switch": "bento",
-    "iso_checksum": "625044388ee60a031965a42a32f4c1de0c029268975edcd542fd14160e0dadcb",
-    "iso_name": "OracleLinux-R6-U10-Server-x86_64-dvd.iso",
-    "ks_path": "6/ks.cfg",
+    "iso_checksum": "28d2928ded40baddcd11884b9a6a611429df12897784923c346057ec5cdd1012",
+    "iso_name": "OracleLinux-R7-U9-Server-x86_64-dvd.iso",
+    "ks_path": "7/ks.cfg",
     "memory": "2048",
     "mirror": "",
     "mirror_directory": "Volumes/DBA/voracle/bento/packer_templates/oraclelinux",
-    "name": "oraclelinux6.10",
+    "name": "oraclelinux7.9",
     "no_proxy": "{{env `no_proxy`}}",
-    "template": "oracle-6.10-x86_64",
+    "template": "oracle-7.9-x86_64",
     "version": "TIMESTAMP"
   }
 }
-
 ```
 
 **<font color='red'>📢 注意：以下修改两个脚本，提前排坑。</font>**
@@ -143,7 +140,7 @@ echo '185.199.109.133 raw.githubusercontent.com' >>/etc/hosts;
 echo '185.199.110.133 raw.githubusercontent.com' >>/etc/hosts;
 echo '185.199.111.133 raw.githubusercontent.com' >>/etc/hosts;
 
-ping raw.githubusercontent.com -c 5
+ping raw.githubusercontent.com -c 10
 ```
 
 ![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-a7c65afa-5446-4162-9aee-12ebe032ca3a.png)
@@ -154,50 +151,30 @@ ping raw.githubusercontent.com -c 5
 
 ```bash
 # modify by luciferliu ,443 port is close, stop firewalld.service
-RELS=$(cat /etc/system-release)
-OS_VER_PRI=$(echo "${RELS#*release}" | awk '{print $1}' | cut -f 1 -d '.')
-if [ "${OS_VER_PRI}" -eq 6 ]; then
-    service iptables stop
-elif [ "${OS_VER_PRI}" -eq 7 ]; then
-    systemctl stop firewalld.service
-fi
-
-pubkey_url="https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub";
-mkdir -p $HOME_DIR/.ssh;
-
-if command -v curl >/dev/null 2>&1; then
-    curl --insecure --location "$pubkey_url" > $HOME_DIR/.ssh/authorized_keys;
-elif command -v fetch >/dev/null 2>&1; then
-    fetch -am -o $HOME_DIR/.ssh/authorized_keys "$pubkey_url";
-elif command -v wget >/dev/null 2>&1; then
-    wget --no-check-certificate "$pubkey_url" -O $HOME_DIR/.ssh/authorized_keys;
-else
-    echo "Cannot download vagrant public key";
-    exit 1;
-fi
+systemctl stop firewalld.service
 ```
-![](https://oss-emcsprod-public.modb.pro/image/editor/20210819-edd650a2-2eec-4e6c-9356-9ceceb75e755.png)
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-8572d347-fad1-41a6-9e87-2ebc77d31c3a.png)
 
 ## 启动 packer 进行打包
 
 ```bash
-packer build -only=virtualbox-iso oraclelinux610.json
+packer build -only=virtualbox-iso oraclelinux79.json
 ```
-![](https://oss-emcsprod-public.modb.pro/image/editor/20210819-a9a05935-ca28-4de6-a90f-b6e71ca22110.png)
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-4978804d-66b3-48a1-a973-30782f95a369.png)
 
-![](https://oss-emcsprod-public.modb.pro/image/editor/20210819-f400b56c-cea7-43cd-9750-7b90e0371fa0.png)
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-b02be205-69c6-47a4-b712-aa2768fc0d97.png)
 
-显示如上，即已经打包成功，box 位置存放在：`../../builds/oraclelinux6.10.virtualbox.box` 。
+显示如上，即已经打包成功，box 位置存放在：`../../builds/oraclelinux7.9.virtualbox.box` 。
 
-![](https://oss-emcsprod-public.modb.pro/image/editor/20210819-e1565aab-51ee-4156-8dba-d5d0bd498066.png)
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-9c0b0812-cfb4-4004-934d-77550617887e.png)
 
 # 上传 box 镜像
 
 不做演示，比较简单。
 
-![](https://oss-emcsprod-public.modb.pro/image/editor/20210819-1375e170-325f-4b7d-b971-652ac425bfb5.png)
+![](https://oss-emcsprod-public.modb.pro/image/editor/20210818-8cbc0c49-476e-4cab-8d4a-6190b790d778.png)
 
-**box镜像下载地址：[luciferliu/oraclelinux6.10](https://app.vagrantup.com/luciferliu/boxes/oraclelinux6.10)**
+**box镜像下载地址：[luciferliu/oraclelinux7.9](https://app.vagrantup.com/luciferliu/boxes/oraclelinux7.9)**
 
 # 写在最后
 
