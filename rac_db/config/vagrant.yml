@@ -1,0 +1,35 @@
+env:
+  box: luciferliu/centos7.9
+  prefix_name: orcl
+  mem_size: 2048
+  cpus: 4
+  scan_ip: 192.168.56.105
+  non_rotational: 'on'
+  db_version: 11
+  gi_patch: 
+  grid_password: oracle
+  oracle_password: oracle
+  oracle_sid: orcl
+  install_base: /u01/app
+  characterset: AL32UTF8
+  cdb: false
+  pdb: pdb01
+
+
+node1:
+  vm_name: rac1
+  public_ip: 192.168.56.100
+  virtual_ip: 192.168.56.102
+  private_ip: 1.1.1.1
+
+node2:
+  vm_name: rac2
+  public_ip: 192.168.56.101
+  virtual_ip: 192.168.56.103
+  private_ip: 1.1.1.2
+
+asm:
+  asmdisk_ocr_name: ./asm_ocr.vdi
+  asmdisk_ocr_size: 20
+  asmdisk_data_name: ./asm_data.vdi
+  asmdisk_data_size: 20

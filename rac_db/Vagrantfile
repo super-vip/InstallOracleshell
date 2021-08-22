@@ -1,0 +1,142 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require 'yaml'
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+puts ""
+puts "│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│"
+puts " Oracle Database 11G/12C/18C/19C/21C && Linux 6/7/8 Vagrant box for VirtualBox"
+puts "                                                                                  "
+puts "----------------------------------------------------------------------------------"
+puts " Author: luciferliu <https://github.com/pc-study/InstallOracleshell>              "
+puts "                                                                                  "
+puts "│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│"
+puts ""
+puts ""
+
+# Variables
+params = YAML.load_file 'config/vagrant.yml'
+
+var_box                     = params['env']['box']
+var_prefix_name             = params['env']['prefix_name']
+var_mem_size                = params['env']['mem_size']
+var_scan_ip                 = params['env']['scan_ip']
+var_cpus                    = params['env']['cpus']
+var_non_rotational          = params['env']['non_rotational']
+var_db_version              = params['env']['db_version']
+var_gi_patch                = params['env']['gi_patch']
+var_grid_password           = params['env']['grid_password']
+var_oracle_password         = params['env']['oracle_password']
+var_oracle_sid              = params['env']['oracle_sid']
+var_install_base            = params['env']['install_base']
+var_characterset            = params['env']['characterset']
+var_cdb                     = params['env']['cdb']
+var_pdb                     = params['env']['pdb']
+
+# Node1
+var_vm_name1                = params['node1']['vm_name']
+var_public_ip1              = params['node1']['public_ip']
+var_virtual_ip1             = params['node1']['virtual_ip']
+var_private_ip1             = params['node1']['private_ip']
+
+# Node2
+var_vm_name2                = params['node2']['vm_name']
+var_public_ip2              = params['node2']['public_ip']
+var_virtual_ip2             = params['node2']['virtual_ip']
+var_private_ip2             = params['node2']['private_ip']
+
+# ASM
+var_asmdisk_ocr_name        = params['asm']['asmdisk_ocr_name']
+var_asmdisk_ocr_size        = params['asm']['asmdisk_ocr_size']
+var_asmdisk_data_name       = params['asm']['asmdisk_data_name']
+var_asmdisk_data_size       = params['asm']['asmdisk_data_size']
+
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = var_box
+
+  # node2
+  config.vm.define :node2 do |node2|
+    node2.vm.network "private_network", ip: var_public_ip2, virtualbox__hostonly: "vboxnet0"
+    node2.vm.network :private_network, ip: var_private_ip2, virtualbox__intnet: "private"
+    node2.vm.provider "virtualbox" do |vb|
+      vb.memory = var_mem_size
+      vb.cpus   = var_cpus
+      vb.name   = var_vm_name2
+
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', '0', '--nonrotational', var_non_rotational]
+
+      # create ocr disk
+      unless File.exist?(var_asmdisk_ocr_name)
+        vb.customize ['createhd', '--filename', var_asmdisk_ocr_name, '--size', var_asmdisk_ocr_size * 1024, '--format', 'VDI', '--variant', 'Fixed']
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--nonrotational', var_non_rotational, '--mtype', 'shareable', '--medium', var_asmdisk_ocr_name]
+      vb.customize ['modifymedium', 'disk', var_asmdisk_ocr_name, '--type', 'shareable']
+
+      # create data disk
+      unless File.exist?(var_asmdisk_data_name)
+        vb.customize ['createhd', '--filename', var_asmdisk_data_name, '--size', var_asmdisk_data_size * 1024, '--format', 'VDI', '--variant', 'Fixed']
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--nonrotational', var_non_rotational, '--mtype', 'shareable', '--medium', var_asmdisk_data_name]
+      vb.customize ['modifymedium', 'disk', var_asmdisk_data_name, '--type', 'shareable']
+    end
+  end
+
+  # node1
+  config.vm.define :node1 do |node1|
+    node1.vm.network "private_network", ip: var_public_ip1, virtualbox__hostonly: "vboxnet0"
+    node1.vm.network :private_network, ip: var_private_ip1, virtualbox__intnet: "private"
+    node1.vm.synced_folder "./software", "/vagrant"
+    node1.vm.provider "virtualbox" do |vb|
+      vb.memory = var_mem_size
+      vb.cpus   = var_cpus
+      vb.name   = var_vm_name1
+
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', '0', '--nonrotational', var_non_rotational]
+
+      # ocr disk
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--nonrotational', var_non_rotational, '--mtype', 'shareable', '--medium', var_asmdisk_ocr_name]
+      vb.customize ['modifymedium', 'disk', var_asmdisk_ocr_name, '--type', 'shareable']
+
+      # data disk
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 2, '--device', 0, '--type', 'hdd', '--nonrotational', var_non_rotational, '--mtype', 'shareable', '--medium', var_asmdisk_data_name]
+      vb.customize ['modifymedium', 'disk', var_asmdisk_data_name, '--type', 'shareable']
+    end
+
+    node1.vm.provision "shell", path: "scripts/setup.sh", env: {
+          "DB_VERSION"         => var_db_version,
+          "GI_PATCH"           => var_gi_patch,
+          "PUBLIC_IP1"         => var_public_ip1,
+          "PUBLIC_IP2"         => var_public_ip2,
+          "VIP_IP1"            => var_virtual_ip1,
+          "VIP_IP2"            => var_virtual_ip2,
+          "PRIV_IP1"           => var_private_ip1,
+          "PRIV_IP2"           => var_private_ip2,
+          "SCAN_IP"            => var_scan_ip,
+          "PREFIX_NAME"        => var_prefix_name,
+          "ORACLE_SID"         => var_oracle_sid,
+          "GRID_PASSWORD"      => var_grid_password,
+          "ORACLE_PASSWORD"    => var_oracle_password,
+          "INSTALL_BASE"       => var_install_base,
+          "CHARACTERSET"       => var_characterset,
+          "CDB"                => var_cdb,
+          "PDB"                => var_pdb
+      }  
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+      echo oracle | passwd --stdin root
+      sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+      RELS=$(cat /etc/system-release)
+      OS_VER_PRI=$(echo "${RELS#*release}" | awk '{print $1}' | cut -f 1 -d '.')
+      if [ "${OS_VER_PRI}" -eq 6 ]; then
+          service sshd restart
+      elif [ "${OS_VER_PRI}" -eq 7 ] || [ "${OS_VER_PRI}" -eq 8 ]; then
+          systemctl restart sshd
+      fi
+  SHELL
+  
+end
+
