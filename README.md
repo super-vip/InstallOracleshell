@@ -269,7 +269,7 @@ pdb             	: PDB 名称，开启 CDB 模式后才可生效。
 
 **❤️ 欢迎 👏🏻 关注作者！❤️**
 
-[![](https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-red)](https://mp.weixin.qq.com/s/mNtdtnNpjfXjpkB6jkoZUQ) [![](https://img.shields.io/badge/CSDN-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-orange)](https://luciferliu.blog.csdn.net/)
+[![](https://img.shields.io/badge/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%8F%B7-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-red)](https://mp.weixin.qq.com/s/BFbpl-7553wRXx-YGdWpQQ) [![](https://img.shields.io/badge/CSDN-Lucifer%E4%B8%89%E6%80%9D%E8%80%8C%E5%90%8E%E8%A1%8C-orange)](https://luciferliu.blog.csdn.net/)
 
 为了加入徽章到 Markdown 文本里面，可以使用以下代码：
 
