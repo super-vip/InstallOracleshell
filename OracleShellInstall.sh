@@ -2334,7 +2334,12 @@ export PATH=\$ORACLE_HOME/bin:\$ORACLE_HOME/OPatch:\$PATH
 alias sas='sqlplus / as sysasm'
 export PS1="[\`whoami\`@\`hostname\`:"'\$PWD]\$ '
 EOF
-
+      ##Users are strongly recommended to go with 19.9 DB RU (or later) to minimize the number of Patches to be installed.19.9 OJVM & OCW RU Patches are also recommended to be applied,during/after the Installation.
+      if [ "${OS_VERSION}" = "linux8" ]; then
+        cat <<EOF >>/home/grid/.bash_profile
+export CV_ASSUME_DISTID=OL7
+EOF
+      fi
       if rlwrap -v >/dev/null 2>&1; then
         cat <<EOF >>/home/grid/.bash_profile
 alias sqlplus='rlwrap sqlplus'
@@ -3262,9 +3267,8 @@ oracle.install.crs.config.batchinfo=
 oracle.install.crs.app.applicationAddress=
 oracle.install.crs.deleteNode.nodes=
 EOF
-    fi
-  elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
-    cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
+    elif [ "${DB_VERSION}" = "21.3.0.0" ]; then
+      cat <<EOF >>"${SOFTWAREDIR}"/grid.rsp
 oracle.install.responseFileVersion=/oracle/install/rspfmt_crsinstall_response_schema_v21.0.0
 INVENTORY_LOCATION=${ENV_ORACLE_INVEN}
 oracle.install.option=HA_CONFIG
@@ -3296,12 +3300,12 @@ oracle.install.crs.config.ipmi.bmcBinpath=
 oracle.install.crs.config.ipmi.bmcUsername=
 oracle.install.crs.config.ipmi.bmcPassword=
 oracle.install.asm.SYSASMPassword=${GRIDPASSWD}
-oracle.install.asm.diskGroup.name=${ASMOCRNAME}
-oracle.install.asm.diskGroup.redundancy=${OCRREDUN}
+oracle.install.asm.diskGroup.name=${ASMDATANAME}
+oracle.install.asm.diskGroup.redundancy=${DATAREDUN}
 oracle.install.asm.diskGroup.AUSize=4
 oracle.install.asm.diskGroup.FailureGroups=
-oracle.install.asm.diskGroup.disksWithFailureGroupNames=${OCRFailureDISK}
-oracle.install.asm.diskGroup.disks=${OCRDISK}
+oracle.install.asm.diskGroup.disksWithFailureGroupNames=${DATAFailureDISK}
+oracle.install.asm.diskGroup.disks=${DATADISK}
 oracle.install.asm.diskGroup.quorumFailureGroupNames=
 oracle.install.asm.diskGroup.diskDiscoveryString=/dev/asm*
 oracle.install.asm.monitorPassword=${GRIDPASSWD}
@@ -3331,8 +3335,8 @@ oracle.install.crs.rootconfig.sudoUserName=
 oracle.install.crs.config.batchinfo=
 oracle.install.crs.deleteNode.nodes=
 EOF
+    fi
   fi
-
   logwrite "${SOFTWAREDIR}/grid.rsp" "cat ${SOFTWAREDIR}/grid.rsp"
 
   #Install Database software
@@ -4027,7 +4031,7 @@ EOF
 # Create netca.rsp
 ####################################################################################
 createNetca() {
-  if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" ] ; then
+  if [ "${OracleInstallMode}" = "single" ] || [ "${OracleInstallMode}" = "SINGLE" ]; then
     if [ -f "${ENV_ORACLE_HOME}"/assistants/netca/netca.rsp ]; then
       if ! su - oracle -c "netca -silent -responsefile ${ENV_ORACLE_HOME}/assistants/netca/netca.rsp"; then
         c1 "Sorry, Listener Create Failed." red
