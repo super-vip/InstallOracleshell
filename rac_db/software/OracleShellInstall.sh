@@ -577,6 +577,15 @@ if [ "${OracleInstallMode}" = "RAC" ] || [ "${OracleInstallMode}" = "rac" ]; the
   RAC2HOSTNAME=${HOSTNAME}2
 fi
 
+# for vagrant LOWERCASE TO UPCASE
+if [ "${ISCDB}" = "true" ]; then
+  ISCDB=TRUE
+fi
+
+if [ "${ISCDB}" = "false" ]; then
+  ISCDB=FALSE
+fi
+
 ##Judge whether ip or dbversion is empty, if it is empty, exit
 if [ "${nodeNum}" -eq 1 ]; then
   # [WARNING] [INS-13001] Oracle Database is not supported on this operating system. Installer will not perform prerequisite checks on the system.
