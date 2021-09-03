@@ -4056,17 +4056,17 @@ createNetca() {
 createDB() {
   if [ "${DB_VERSION}" = "11.2.0.4" ]; then
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 1024 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     elif [ "${OracleInstallMode}" = "restart" ] || [ "${OracleInstallMode}" = "RESTART" ]; then
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 120 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -asmsnmpPassword oracle -datafileDestination ${ASMDATANAME} -redoLogFileSize 1024 -recoveryAreaDestination ${ASMDATANAME} -storageType ASM -responseFile NO_VALUE -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -continueOnNonFatalErrors false -disableSecurityConfiguration ALL -diskGroupName ${ASMDATANAME} -emConfiguration NONE -listeners LISTENER -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     else
-      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbname ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS -datafileDestination ${ORADATADIR} -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbname ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 1024 -storageType FS -datafileDestination ${ORADATADIR} -characterSet ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -4078,7 +4078,7 @@ createDB() {
   elif [ "${DB_VERSION}" = "12.2.0.1" ] || [ "${DB_VERSION}" = "18.0.0.0" ] || [[ "${DB_VERSION}" == "19.3.0.0" ]] || [[ "${DB_VERSION}" == "21.3.0.0" ]]; then
     if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
       ASMDATANAME="+${ASMDATANAME}"
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType RAC -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 1024 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType RAC -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -nodeinfo ${RAC1HOSTNAME},${RAC2HOSTNAME} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -4094,12 +4094,12 @@ createDB() {
         # usermod -a -G racdba grid
         # su - oracle -c "relink all"
       fi
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType SINGLE -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 1024 -storageType ASM -enableArchive true -archiveLogDest ${ASMDATANAME} -databaseConfigType SINGLE -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -datafileDestination ${ASMDATANAME} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
     else
-      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 120 -storageType FS  -databaseConfigType SINGLE -datafileDestination ${ORADATADIR} -enableArchive true -archiveLogDest ${ARCHIVEDIR} -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
+      if ! su - oracle -c "dbca -silent -createDatabase -ignorePrereqFailure -templateName General_Purpose.dbc -responseFile NO_VALUE -gdbName ${ORACLE_SID} -sid ${ORACLE_SID} -sysPassword oracle -systemPassword oracle -redoLogFileSize 1024 -storageType FS  -databaseConfigType SINGLE -datafileDestination ${ORADATADIR} -enableArchive true -archiveLogDest ${ARCHIVEDIR} -characterset ${CHARACTERSET} -nationalCharacterSet ${NCHARACTERSET} -emConfiguration NONE -automaticMemoryManagement false -totalMemory ${totalMemory} -databaseType OLTP -createAsContainerDatabase ${ISCDB}"; then
         c1 "Sorry, Database Create Failed." red
         exit 99
       fi
@@ -4333,13 +4333,44 @@ EOF
   fi
 
   ####################################################################################
+  # Configure instances redolog number
+  ####################################################################################
+  if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
+    cat <<EOF >/home/oracle/create_redolog.sql
+alter database add logfile thread 1 
+group 11 size 1024M,
+group 12 size 1024M,
+group 13 size 1024M,
+group 14 size 1024M,
+group 15 size 1024M;
+alter database add logfile thread 2 
+group 16 size 1024M,
+group 17 size 1024M,
+group 18 size 1024M,
+group 19 size 1024M,
+group 20 size 1024M;
+EOF
+  else
+    cat <<EOF >/home/oracle/create_redolog.sql
+alter database add logfile 
+group 11 size 1024M,
+group 12 size 1024M,
+group 13 size 1024M,
+group 14 size 1024M,
+group 15 size 1024M;
+EOF
+  fi
+  
+  logwrite "Oracle Redlog files" "su - oracle -c \"sqlplus / as sysdba @/home/oracle/create_redolog.sql\""
+
+  ####################################################################################
   # Configure PASSWORD_LIFE_TIME UNLIMITED
   ####################################################################################
   if [ "${ISCDB}" = "TRUE" ] && [ -n "${PDBNAME}" ]; then
     cat <<EOF >/home/oracle/password_unlimt.sql
 ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER SYSTEM SET AUDIT_TRAIL=NONE SCOPE=SPFILE;
-alter system set processes=1000 scope=spfile;
+alter system set processes=2000 scope=spfile;
 ALTER SYSTEM SET DEFERRED_SEGMENT_CREATION=FALSE;
 ALTER SYSTEM SET "_OPTIMIZER_CARTESIAN_ENABLED"=FALSE;
 ALTER SYSTEM SET "_USE_SINGLE_LOG_WRITER"=FALSE SCOPE=SPFILE;
@@ -4354,7 +4385,7 @@ EOF
     cat <<EOF >/home/oracle/password_unlimt.sql
 ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;
 ALTER SYSTEM SET AUDIT_TRAIL=NONE SCOPE=SPFILE;
-alter system set processes=1000 scope=spfile;
+alter system set processes=2000 scope=spfile;
 ALTER SYSTEM SET DEFERRED_SEGMENT_CREATION=FALSE;
 ALTER SYSTEM SET "_OPTIMIZER_CARTESIAN_ENABLED"=FALSE;
 --ALTER SYSTEM SET "_USE_SINGLE_LOG_WRITER"=FALSE SCOPE=SPFILE;
