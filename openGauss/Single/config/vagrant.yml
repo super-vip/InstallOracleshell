@@ -1,0 +1,9 @@
+box: luciferliu/centos7.9
+vm_name: openGauss
+hostname: openGauss
+mem_size: 4096
+cpus: 2
+public_ip: 192.168.56.100
+non_rotational: 'on'
+gauss_install_dir: /gaussdb
+

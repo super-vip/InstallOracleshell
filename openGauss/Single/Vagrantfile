@@ -1,0 +1,48 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require 'yaml'
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+puts ""
+puts "│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│"
+puts " OpenGauss Database 2.0.1 && Centos7.6 Vagrant box for VirtualBox"
+puts "                                                                                  "
+puts "----------------------------------------------------------------------------------"
+puts " Author: luciferliu <https://github.com/pc-study/InstallOracleshell>              "
+puts "                                                                                  "
+puts "│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│"
+puts ""
+puts ""
+
+# Variables
+params = YAML.load_file 'config/vagrant.yml'
+var_box              = params['box']
+var_vm_name          = params['vm_name']
+var_hostname         = params['hostname']
+var_mem_size         = params['mem_size']
+var_cpus             = params['cpus']
+var_public_ip        = params['public_ip']
+var_non_rotational   = params['non_rotational']
+var_base_dir         = params['gauss_install_dir']
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = var_box
+  config.vm.hostname = var_hostname
+  config.vm.network "private_network", ip: var_public_ip
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = var_mem_size
+    vb.cpus   = var_cpus
+    vb.name   = var_vm_name
+
+    vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', '0', '--nonrotational', var_non_rotational]
+  end
+  config.vm.provision "shell", path: "scripts/env.sh"
+  config.vm.provision "shell", path: "scripts/GaussInstall.sh", env: {
+          "PUBLIC_IP"          => var_public_ip,
+          "HOSTNAME"           => var_hostname,
+          "ENV_BASE_DIR"       => var_base_dir
+      }
+end
+

@@ -1,0 +1,97 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require 'yaml'
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+puts ""
+puts "│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│"
+puts " OpenGauss Database 2.0.1 && Centos7.6 Vagrant box for VirtualBox"
+puts "                                                                                  "
+puts "----------------------------------------------------------------------------------"
+puts " Author: luciferliu <https://github.com/pc-study/InstallOracleshell>              "
+puts "                                                                                  "
+puts "│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│"
+puts ""
+puts ""
+
+# Variables
+params = YAML.load_file 'config/vagrant.yml'
+
+var_box                     = params['env']['box']
+var_mem_size                = params['env']['mem_size']
+var_cpus                    = params['env']['cpus']
+var_non_rotational          = params['env']['non_rotational']
+var_rootpasswd              = params['env']['rootpasswd']
+var_ommpasswd               = params['env']['ommpasswd']
+var_odbpasswd               = params['env']['ogausspasswd']
+var_base_dir                = params['env']['gauss_install_dir']
+
+# Node1
+var_vm_name1                = params['node1']['vm_name']
+var_public_ip1              = params['node1']['public_ip']
+var_hostname1               = params['node1']['hostname']
+
+# Node2
+var_vm_name2                = params['node2']['vm_name']
+var_public_ip2              = params['node2']['public_ip']
+var_hostname2               = params['node2']['hostname']
+
+# Node3
+var_vm_name3                = params['node3']['vm_name']
+var_public_ip3              = params['node3']['public_ip']
+var_hostname3               = params['node3']['hostname']
+
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = var_box
+
+  config.vm.define :node3 do |node3|
+    node3.vm.network "private_network", ip: var_public_ip3, virtualbox__hostonly: "vboxnet0"
+    node3.vm.hostname = var_hostname3
+    node3.vm.provider "virtualbox" do |vb|
+      vb.memory = var_mem_size
+      vb.cpus   = var_cpus
+      vb.name   = var_vm_name3
+
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', '0', '--nonrotational', var_non_rotational]
+    end
+  end
+
+  config.vm.define :node2 do |node2|
+    node2.vm.network "private_network", ip: var_public_ip2, virtualbox__hostonly: "vboxnet0"
+    node2.vm.hostname = var_hostname2
+    node2.vm.provider "virtualbox" do |vb|
+      vb.memory = var_mem_size
+      vb.cpus   = var_cpus
+      vb.name   = var_vm_name2
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', '0', '--nonrotational', var_non_rotational]
+    end
+  end
+
+  config.vm.define :node1 do |node1|
+    node1.vm.network "private_network", ip: var_public_ip1, virtualbox__hostonly: "vboxnet0"
+    node1.vm.hostname = var_hostname1
+    node1.vm.provider "virtualbox" do |vb|
+      vb.memory = var_mem_size
+      vb.cpus   = var_cpus
+      vb.name   = var_vm_name1
+
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', '0', '--nonrotational', var_non_rotational]
+    end
+    node1.vm.provision "shell", path: "scripts/GaussInstall.sh", env: {
+          "PUBLIC_IP1"          => var_public_ip1,
+          "PUBLIC_IP2"          => var_public_ip2,
+          "PUBLIC_IP3"          => var_public_ip3,
+          "HOSTNAME1"           => var_hostname1,
+          "HOSTNAME2"           => var_hostname2,
+          "HOSTNAME3"           => var_hostname3,
+          "ENV_BASE_DIR"        => var_base_dir
+      }
+  end
+
+  config.vm.provision "shell", path: "scripts/env.sh"
+
+end
+

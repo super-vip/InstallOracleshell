@@ -1,0 +1,21 @@
+env:
+  box: luciferliu/centos7.9
+  mem_size: 4096
+  cpus: 2
+  non_rotational: 'on'
+  gauss_install_dir: /gaussdb
+
+node1:
+  vm_name: prod
+  hostname: prod
+  public_ip: 192.168.56.100
+
+node2:
+  vm_name: standby
+  hostname: standby
+  public_ip: 192.168.56.101
+
+node3:
+  vm_name: casstb
+  hostname: casstb
+  public_ip: 192.168.56.102
