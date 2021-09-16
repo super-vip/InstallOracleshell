@@ -4335,33 +4335,33 @@ EOF
   ####################################################################################
   # Configure instances redolog number
   ####################################################################################
-  if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
-    cat <<EOF >/home/oracle/create_redolog.sql
-alter database add logfile thread 1 
-group 11 size 1024M,
-group 12 size 1024M,
-group 13 size 1024M,
-group 14 size 1024M,
-group 15 size 1024M;
-alter database add logfile thread 2 
-group 16 size 1024M,
-group 17 size 1024M,
-group 18 size 1024M,
-group 19 size 1024M,
-group 20 size 1024M;
-EOF
-  else
-    cat <<EOF >/home/oracle/create_redolog.sql
-alter database add logfile 
-group 11 size 1024M,
-group 12 size 1024M,
-group 13 size 1024M,
-group 14 size 1024M,
-group 15 size 1024M;
-EOF
-  fi
+#   if [ "${OracleInstallMode}" = "rac" ] || [ "${OracleInstallMode}" = "RAC" ]; then
+#     cat <<EOF >/home/oracle/create_redolog.sql
+# alter database add logfile thread 1 
+# group 11 size 1024M,
+# group 12 size 1024M,
+# group 13 size 1024M,
+# group 14 size 1024M,
+# group 15 size 1024M;
+# alter database add logfile thread 2 
+# group 16 size 1024M,
+# group 17 size 1024M,
+# group 18 size 1024M,
+# group 19 size 1024M,
+# group 20 size 1024M;
+# EOF
+#   else
+#     cat <<EOF >/home/oracle/create_redolog.sql
+# alter database add logfile 
+# group 11 size 1024M,
+# group 12 size 1024M,
+# group 13 size 1024M,
+# group 14 size 1024M,
+# group 15 size 1024M;
+# EOF
+#   fi
   
-  logwrite "Oracle Redlog files" "su - oracle -c \"sqlplus / as sysdba @/home/oracle/create_redolog.sql\""
+#   logwrite "Oracle Redlog files" "su - oracle -c \"sqlplus / as sysdba @/home/oracle/create_redolog.sql\""
 
   ####################################################################################
   # Configure PASSWORD_LIFE_TIME UNLIMITED
