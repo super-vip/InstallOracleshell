@@ -1,3 +1,5 @@
+## <font color='red'>📢 注意：Shell 脚本源码不再公开免费！需要请添加微信：Lucifer-4622 </font>
+
 # Shell-InstallOracle
 
 使用 ShellScripts 脚本安全快速安装 Oracle 数据库！**提高生产力，释放劳动力！**
