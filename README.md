@@ -1,4 +1,4 @@
-## <font color='red'>📢 注意：Shell 脚本源码不再公开免费！需要请添加微信：Lucifer-4622 </font>
+## <font color='red'>📢 注意：最新 Shell 脚本源码不再公开免费！需要请添加微信：Lucifer-4622 </font>
 
 # Shell-InstallOracle
 
